@@ -28,7 +28,7 @@
             overflow: hidden;
         }
 
-        /* Animated Background Elements */
+        /* Animated Background */
         body::before {
             content: "";
             position: absolute;
@@ -44,7 +44,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Sidebar Styling */
+        /* Sidebar */
         .sidebar {
             width: 260px;
             background: var(--glass);
@@ -62,7 +62,6 @@
             color: var(--accent);
             margin-bottom: 40px;
             text-align: center;
-            letter-spacing: 1px;
         }
 
         .nav-item {
@@ -73,14 +72,12 @@
             transition: all 0.3s ease;
             color: #666;
             font-weight: 500;
-            display: flex;
-            align-items: center;
         }
 
         .nav-item:hover { background: rgba(74, 144, 226, 0.1); color: var(--primary); }
         .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3); }
 
-        /* Main Content Area */
+        /* Main Content */
         .main-content {
             flex: 1;
             padding: 40px;
@@ -96,7 +93,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Glass Cards */
+        /* Cards */
         .glass-card {
             background: var(--glass);
             backdrop-filter: blur(15px);
@@ -107,56 +104,63 @@
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* Parking Slots */
-        .parking-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .slot-card {
-            text-align: center;
-            padding: 30px;
-            transition: transform 0.3s ease;
-        }
-
+        /* Parking Grid */
+        .parking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .slot-card { text-align: center; padding: 30px; transition: transform 0.3s ease; }
         .slot-card:hover { transform: translateY(-5px); }
         .slot-status { font-size: 32px; font-weight: 600; margin: 10px 0; }
         
-        /* Form Styling */
-        input, select, button {
-            padding: 12px;
-            margin: 10px 5px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            outline: none;
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-
+        /* Inputs & Buttons */
+        input, select, button { padding: 12px; margin: 10px 5px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; transition: 0.3s; }
         button:hover { opacity: 0.9; }
-
-        .logout-btn {
-            margin-top: auto;
-            background: #fdf2f2;
-            color: var(--danger);
-            border: 1px solid #fee2e2;
-        }
-
-        .stats-banner {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-        }
-
+        
+        .logout-btn { margin-top: auto; background: #fdf2f2; color: var(--danger); border: 1px solid #fee2e2; }
+        
+        .stats-banner { display: flex; justify-content: space-around; margin-bottom: 30px; }
         .stat-item span { display: block; font-size: 24px; font-weight: 600; color: var(--primary); }
+
+        /* Reservation List Styles */
+        .res-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+        .del-btn {
+            background: var(--danger);
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+            border-radius: 6px;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--accent);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -166,7 +170,6 @@
         <div class="nav-item active" onclick="showSection('live')">Live Monitoring</div>
         <div class="nav-item" onclick="showSection('analytics')">Usage Analytics</div>
         <div class="nav-item" onclick="showSection('reserve')">Reservations</div>
-        
         <button class="logout-btn" onclick="logout()">Sign Out</button>
     </nav>
 
@@ -177,7 +180,6 @@
                 <div class="stat-item">Available <span id="freeCount" style="color: var(--success)">0</span></div>
                 <div class="stat-item">Occupied <span id="occCount" style="color: var(--danger)">0</span></div>
             </div>
-
             <div class="glass-card">
                 <h2>Real-Time Availability</h2>
                 <div class="parking-grid">
@@ -193,7 +195,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="glass-card">
                 <h3>Smart AI Prediction</h3>
                 <p id="prediction" style="font-size: 1.2rem; color: var(--primary)">Calculating trend...</p>
@@ -203,9 +204,7 @@
         <section id="analytics" class="section">
             <div class="glass-card">
                 <h2>Occupancy Overview</h2>
-                <div style="max-width: 400px; margin: auto;">
-                    <canvas id="parkingChart"></canvas>
-                </div>
+                <div style="max-width: 400px; margin: auto;"><canvas id="parkingChart"></canvas></div>
             </div>
             <div class="glass-card">
                 <h2>24-Hour History</h2>
@@ -217,10 +216,7 @@
             <div class="glass-card">
                 <h2>Book a Space</h2>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    <select id="slot">
-                        <option value="1">Slot 1</option>
-                        <option value="2">Slot 2</option>
-                    </select>
+                    <select id="slot"><option value="1">Slot 1</option><option value="2">Slot 2</option></select>
                     <input type="time" id="start">
                     <input type="time" id="end">
                     <button onclick="reserveSlot()">Confirm Booking</button>
@@ -237,14 +233,33 @@
         </section>
     </main>
 
+    <div id="toast-container"></div>
+
     <script>
+        const API_BASE = "https://parking-backend-ec5m.onrender.com";
+        let currentReservations = []; // Stores our active reservations in memory
+
         // --- UI NAVIGATION ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             document.getElementById(id).classList.add('active');
             event.currentTarget.classList.add('active');
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            container.appendChild(toast);
+            
+            // Remove toast after 4 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
         }
 
         // --- CHARTS ---
@@ -262,9 +277,7 @@
             options: { cutout: '70%' }
         });
 
-        // --- API LOGIC (RETAINED) ---
-        const API_BASE = "https://parking-backend-ec5m.onrender.com";
-
+        // --- API & DATA LOGIC ---
         function updateData() {
             fetch(`${API_BASE}/data`)
                 .then(res => res.json())
@@ -290,7 +303,6 @@
                     parkingChart.data.datasets[0].data = [free, occ];
                     parkingChart.update();
 
-                    // Update History
                     let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     historyChart.data.labels.push(now);
                     historyChart.data.datasets[0].data.push(occ);
@@ -299,9 +311,10 @@
                         historyChart.data.datasets[0].data.shift();
                     }
                     historyChart.update();
-                });
+                }).catch(e => console.log("Data fetch error"));
         }
 
+        // --- RESERVATION LOGIC ---
         function reserveSlot() {
             let slot = document.getElementById("slot").value;
             let start = document.getElementById("start").value;
@@ -312,7 +325,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ slot, start, end, price: 20 })
             }).then(() => {
-                document.getElementById("reservationStatus").innerText = "Success! Slot " + slot + " reserved.";
+                showToast(`Success! Slot ${slot} reserved from ${start} to ${end}.`);
                 loadReservations();
             });
         }
@@ -321,31 +334,92 @@
             fetch(`${API_BASE}/reservations`)
                 .then(res => res.json())
                 .then(data => {
-                    let html = data.map(r => `
-                        <div style="padding:10px; border-bottom:1px solid #eee; font-size:14px;">
-                            <b>Slot ${r.slot}</b>: ${r.start} - ${r.end}
-                        </div>
-                    `).join('');
-                    document.getElementById("reservationList").innerHTML = html || "No active reservations.";
-                });
+                    currentReservations = data; // Update our local tracking array
+                    renderReservations();
+                }).catch(e => console.log("Could not load reservations"));
+        }
+
+        function renderReservations() {
+            const list = document.getElementById("reservationList");
+            if (currentReservations.length === 0) {
+                list.innerHTML = "<p style='color: #888;'>No active reservations.</p>";
+                return;
+            }
+
+            let html = currentReservations.map((r, index) => `
+                <div class="res-item">
+                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end}</div>
+                    <button class="del-btn" onclick="manualDelete(${index})">Delete</button>
+                </div>
+            `).join('');
+            list.innerHTML = html;
+        }
+
+        function manualDelete(index) {
+            const res = currentReservations[index];
+            
+            // 1. Remove from local array instantly for responsive UI
+            currentReservations.splice(index, 1);
+            renderReservations();
+            showToast(`Reservation for Slot ${res.slot} cancelled manually.`);
+
+            // 2. Tell the backend to delete it (Update the endpoint to match your actual backend delete route!)
+            fetch(`${API_BASE}/delete_reservation`, { // <--- Change this to your actual backend delete endpoint
+                method: "POST", // Or DELETE
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(res)
+            }).catch(e => console.log("Note: Backend deletion endpoint may need to be configured."));
+        }
+
+        // --- REAL-TIME EXPIRATION CHECKER ---
+        function checkExpirationsRealTime() {
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+
+            // Loop backwards so removing items doesn't mess up index tracking
+            for (let i = currentReservations.length - 1; i >= 0; i--) {
+                const res = currentReservations[i];
+                
+                // Parse the "end" time (Assuming format is "HH:MM")
+                const [endHours, endMinutes] = res.end.split(':').map(Number);
+                
+                // Check if current real-world time is past the reservation end time
+                if (currentHours > endHours || (currentHours === endHours && currentMinutes >= endMinutes)) {
+                    
+                    // Show notification
+                    showToast(`Time's up! Reservation for Slot ${res.slot} has expired.`);
+                    
+                    // Remove from array and UI
+                    currentReservations.splice(i, 1);
+                    renderReservations();
+
+                    // Optional: tell backend to delete if it doesn't do it automatically
+                    fetch(`${API_BASE}/delete_reservation`, { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(res)
+                    }).catch(e => {}); 
+                }
+            }
         }
 
         function updatePrediction() {
             fetch(`${API_BASE}/prediction`)
                 .then(res => res.json())
-                .then(data => {
-                    document.getElementById("prediction").innerText = "Expected Free Spaces: " + data.predicted_free_spaces;
-                });
+                .then(data => { document.getElementById("prediction").innerText = "Expected Free Spaces: " + data.predicted_free_spaces; })
+                .catch(e => console.log("Prediction fetch error"));
         }
 
         function logout() { window.location.href = "/"; }
 
-        // Intervals
+        // --- INTERVALS ---
         setInterval(updateData, 2000);
-        setInterval(loadReservations, 5000);
+        setInterval(loadReservations, 10000); // Only fetch from backend every 10s so we don't overwrite local deletes instantly
+        setInterval(checkExpirationsRealTime, 10000); // Check for expired times locally every 10 seconds
         setInterval(updatePrediction, 10000);
 
-        // Init
+        // --- INIT ---
         updateData();
         loadReservations();
         updatePrediction();
