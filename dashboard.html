@@ -101,7 +101,20 @@ Free Slots: <span id="freeCount">0</span> |
 Occupied: <span id="occCount">0</span>
 
 </div>
+  
+<h2>Reserve Parking Slot</h2>
 
+<select id="slot">
+<option value="1">Slot 1</option>
+<option value="2">Slot 2</option>
+</select>
+
+<input type="time" id="start">
+<input type="time" id="end">
+
+<button onclick="reserveSlot()">Reserve</button>
+
+<p id="reservationStatus"></p>
 <h2>Parking Lot</h2>
 
 <div class="parkingLot">
@@ -191,7 +204,37 @@ backgroundColor:['green','red']
 }]
 }
 });
+  
+function reserveSlot(){
 
+let slot=document.getElementById("slot").value
+let start=document.getElementById("start").value
+let end=document.getElementById("end").value
+
+fetch("https://parking-backend-ec5m.onrender.com/reserve",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+slot:slot,
+start:start,
+end:end,
+price:20
+})
+
+})
+
+.then(res=>res.json())
+
+.then(data=>{
+document.getElementById("reservationStatus").innerHTML="Reservation Successful"
+})
+
+}
 function updateData(){
 
 fetch("https://parking-backend-ec5m.onrender.com/data")
@@ -281,4 +324,5 @@ updateData();
 
 </body>
 </html>
+
 
