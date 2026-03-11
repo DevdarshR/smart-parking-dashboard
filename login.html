@@ -1,1 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking | Secure Login</title>
+    <style>
+        /* Modern Reset */
+        * { box-sizing: border-box; }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Background image with a dark overlay for readability */
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                        url('https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Effect */
+        .login-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            
+            /* Entrance Animation */
+            animation: fadeInScale 0.8s ease-out;
+        }
+
+        h2 { margin-bottom: 25px; font-weight: 300; letter-spacing: 1px; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: #3498db;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover { background: #2980b9; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        #error {
+            color: #ff7675;
+            font-size: 14px;
+            margin-top: 15px;
+            height: 20px; /* Prevents layout jump */
+            font-weight: bold;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box" id="box">
+    <h2>🅿️ Smart Parking</h2>
+    <input id="username" type="text" placeholder="Username" autocomplete="off">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Enter Dashboard</button>
+    <p id="error"></p>
+</div>
+
+<script>
+    function login() {
+        const user = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const errorMsg = document.getElementById("error");
+        const box = document.getElementById("box");
+
+        // Simple validation
+        if (user === "admin" && pass === "1234") {
+            errorMsg.style.color = "#55efc4";
+            errorMsg.innerHTML = "Success! Redirecting...";
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 1000);
+        } else {
+            // Trigger Shake Animation
+            errorMsg.innerHTML = "Invalid Credentials";
+            box.classList.remove("shake");
+            void box.offsetWidth; // Trigger reflow to restart animation
+            box.classList.add("shake");
+        }
+    }
+
+    // Allow "Enter" key to submit
+    document.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') { login(); }
+    });
+</script>
+
+</body>
+</html>
