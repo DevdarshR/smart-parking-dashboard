@@ -1,375 +1,354 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxePark | Smart Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f4f7f6;
+            --accent: #2c3e50;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --glass: rgba(255, 255, 255, 0.85);
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-<title>Smart Parking Dashboard</title>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e1f5fe, #f3e5f5);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            overflow: hidden;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        /* Animated Background Elements */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1920') center/cover no-repeat;
+            opacity: 0.1;
+            z-index: -1;
+        }
 
-<style>
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-body{
-font-family:Arial;
-background:#f4f6f8;
-margin:0;
-text-align:center;
-}
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
 
-.header{
-background:#2c3e50;
-color:white;
-padding:20px;
-font-size:24px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
+        .sidebar h1 {
+            font-size: 22px;
+            color: var(--accent);
+            margin-bottom: 40px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
 
-.logoutBtn{
-background:red;
-border:none;
-color:white;
-padding:8px 15px;
-border-radius:6px;
-cursor:pointer;
-}
+        .nav-item {
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
 
-.counter{
-margin:20px;
-font-size:20px;
-font-weight:bold;
-}
+        .nav-item:hover { background: rgba(74, 144, 226, 0.1); color: var(--primary); }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3); }
 
-.parkingLot{
-display:flex;
-justify-content:center;
-gap:40px;
-margin-top:40px;
-}
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
 
-.slotBox{
+        .section { display: none; animation: fadeIn 0.5s ease forwards; }
+        .section.active { display: block; }
 
-width:140px;
-height:140px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-background:white;
-border-radius:10px;
+        /* Glass Cards */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
 
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
+        /* Parking Slots */
+        .parking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
 
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
+        .slot-card {
+            text-align: center;
+            padding: 30px;
+            transition: transform 0.3s ease;
+        }
 
-font-size:18px;
+        .slot-card:hover { transform: translateY(-5px); }
+        .slot-status { font-size: 32px; font-weight: 600; margin: 10px 0; }
+        
+        /* Form Styling */
+        input, select, button {
+            padding: 12px;
+            margin: 10px 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
 
-}
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
 
-.slotStatus{
-font-size:28px;
-font-weight:bold;
-}
+        button:hover { opacity: 0.9; }
 
-.analytics{
-margin-top:40px;
-}
+        .logout-btn {
+            margin-top: auto;
+            background: #fdf2f2;
+            color: var(--danger);
+            border: 1px solid #fee2e2;
+        }
 
-</style>
+        .stats-banner {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
 
+        .stat-item span { display: block; font-size: 24px; font-weight: 600; color: var(--primary); }
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-
-<span>Smart Parking System</span>
-
-<button onclick="logout()" class="logoutBtn">
-Logout
-</button>
-
-</div>
-
-<div class="counter">
-
-Total Slots: 2 |
-Free Slots: <span id="freeCount">0</span> |
-Occupied: <span id="occCount">0</span>
-
-</div>
-  
-
-<h2>Parking Lot</h2>
-
-<div class="parkingLot">
-
-<div class="slotBox">
-
-<div>Slot 1</div>
-
-<div id="status1" class="slotStatus">Loading...</div>
-
-<div id="distance1"></div>
-
-</div>
-
-<div class="slotBox">
-
-<div>Slot 2</div>
-
-<div id="status2" class="slotStatus">Loading...</div>
-
-<div id="distance2"></div>
-
-</div>
-
-</div>
-
-<div class="analytics">
-
-<h2>Parking Analytics</h2>
-
-<div style="width:300px;margin:auto;">
-<canvas id="parkingChart"></canvas>
-</div>
-
-</div>
-
-<h2>Parking Usage History</h2>
-
-<div style="width:400px;margin:auto;">
-<canvas id="historyChart"></canvas>
-</div>
-
-<h2>Parking Prediction</h2>
-
-<div id="prediction" style="font-size:20px;font-weight:bold;">
-Loading prediction...
-</div>
-
-<h2>Reserve Parking Slot</h2>
-
-<select id="slot">
-<option value="1">Slot 1</option>
-<option value="2">Slot 2</option>
-</select>
-
-<input type="time" id="start">
-<input type="time" id="end">
-
-<button onclick="reserveSlot()">Reserve</button>
-
-<p id="reservationStatus"></p>
-  
-<h2>Current Reservations</h2>
-
-<div id="reservationList"></div>
-<script>
-
-var historyCtx = document.getElementById('historyChart').getContext('2d');
-
-var historyChart = new Chart(historyCtx,{
-type:'line',
-data:{
-labels:[],
-datasets:[{
-label:'Occupied Slots',
-data:[],
-borderColor:'blue',
-fill:false,
-tension:0.3
-}]
-},
-options:{
-responsive:true,
-scales:{
-y:{
-beginAtZero:true,
-ticks:{
-stepSize:1
-}
-}
-}
-}
-});
-
-var ctx = document.getElementById('parkingChart').getContext('2d');
-
-var parkingChart = new Chart(ctx,{
-type:'pie',
-data:{
-labels:['Free','Occupied'],
-datasets:[{
-data:[0,0],
-backgroundColor:['green','red']
-}]
-}
-});
-  
-function reserveSlot(){
-
-let slot=document.getElementById("slot").value
-let start=document.getElementById("start").value
-let end=document.getElementById("end").value
-
-fetch("https://parking-backend-ec5m.onrender.com/reserve",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-slot:slot,
-start:start,
-end:end,
-price:20
-})
-
-})
-
-.then(res=>res.json())
-
-.then(data=>{
-document.getElementById("reservationStatus").innerHTML="Reservation Successful"
-})
-
-}
-function loadReservations(){
-
-fetch("https://parking-backend-ec5m.onrender.com/reservations")
-
-.then(res=>res.json())
-
-.then(data=>{
-
-let html=""
-
-data.forEach(r=>{
-html += "Slot "+r.slot+" reserved from "+r.start+" to "+r.end+"<br>"
-})
-
-document.getElementById("reservationList").innerHTML=html
-
-})
-
-}
-
-setInterval(loadReservations,3000)
-loadReservations()  
-function updateData(){
-
-fetch("https://parking-backend-ec5m.onrender.com/data")
-.then(response => response.json())
-.then(data => {
-
-document.getElementById("distance1").innerHTML =
-data.distance1 + " cm";
-
-document.getElementById("distance2").innerHTML =
-data.distance2 + " cm";
-
-document.getElementById("status1").innerHTML =
-data.status1;
-
-document.getElementById("status2").innerHTML =
-data.status2;
-
-if(data.status1 == "FREE"){
-document.getElementById("status1").style.color="green";
-}else{
-document.getElementById("status1").style.color="red";
-}
-
-if(data.status2 == "FREE"){
-document.getElementById("status2").style.color="green";
-}else{
-document.getElementById("status2").style.color="red";
-}
-
-let free = 0;
-let occ = 0;
-
-if(data.status1 == "FREE") free++; else occ++;
-if(data.status2 == "FREE") free++; else occ++;
-
-document.getElementById("freeCount").innerHTML = free;
-document.getElementById("occCount").innerHTML = occ;
-
-parkingChart.data.datasets[0].data = [free, occ];
-parkingChart.update();
-
-let occupiedSlots = occ;
-
-let now = new Date().toLocaleTimeString();
-
-historyChart.data.labels.push(now);
-historyChart.data.datasets[0].data.push(occupiedSlots);
-
-if(historyChart.data.labels.length > 10){
-historyChart.data.labels.shift();
-historyChart.data.datasets[0].data.shift();
-}
-
-historyChart.update();
-});
-
-}
-function logout(){
-window.location.href="index.html";
-}
-function checkExpired(){
-
-fetch("https://parking-backend-ec5m.onrender.com/expired")
-
-.then(res=>res.json())
-
-.then(data=>{
-
-data.forEach(msg=>{
-alert(msg)
-})
-
-})
-
-}
-
-setInterval(checkExpired,5000)  
-function updatePrediction(){
-
-fetch("https://parking-backend-ec5m.onrender.com/prediction")
-.then(response => response.json())
-.then(data => {
-
-document.getElementById("prediction").innerHTML =
-"Predicted Free Spaces: " + data.predicted_free_spaces;
-
-});
-
-}
-
-setInterval(updatePrediction,5000);
-updatePrediction();
-
-function logout(){
-window.location.href="/";
-}
-
-setInterval(updateData,1000);
-
-updateData();
-
-</script>
-
+    <nav class="sidebar">
+        <h1>LuxePark</h1>
+        <div class="nav-item active" onclick="showSection('live')">Live Monitoring</div>
+        <div class="nav-item" onclick="showSection('analytics')">Usage Analytics</div>
+        <div class="nav-item" onclick="showSection('reserve')">Reservations</div>
+        
+        <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </nav>
+
+    <main class="main-content">
+        <section id="live" class="section active">
+            <div class="glass-card stats-banner">
+                <div class="stat-item">Total Slots <span>02</span></div>
+                <div class="stat-item">Available <span id="freeCount" style="color: var(--success)">0</span></div>
+                <div class="stat-item">Occupied <span id="occCount" style="color: var(--danger)">0</span></div>
+            </div>
+
+            <div class="glass-card">
+                <h2>Real-Time Availability</h2>
+                <div class="parking-grid">
+                    <div class="glass-card slot-card">
+                        <h3>Slot 01</h3>
+                        <div id="status1" class="slot-status">...</div>
+                        <div id="distance1" style="color: #888"></div>
+                    </div>
+                    <div class="glass-card slot-card">
+                        <h3>Slot 02</h3>
+                        <div id="status2" class="slot-status">...</div>
+                        <div id="distance2" style="color: #888"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h3>Smart AI Prediction</h3>
+                <p id="prediction" style="font-size: 1.2rem; color: var(--primary)">Calculating trend...</p>
+            </div>
+        </section>
+
+        <section id="analytics" class="section">
+            <div class="glass-card">
+                <h2>Occupancy Overview</h2>
+                <div style="max-width: 400px; margin: auto;">
+                    <canvas id="parkingChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card">
+                <h2>24-Hour History</h2>
+                <canvas id="historyChart" height="100"></canvas>
+            </div>
+        </section>
+
+        <section id="reserve" class="section">
+            <div class="glass-card">
+                <h2>Book a Space</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <select id="slot">
+                        <option value="1">Slot 1</option>
+                        <option value="2">Slot 2</option>
+                    </select>
+                    <input type="time" id="start">
+                    <input type="time" id="end">
+                    <button onclick="reserveSlot()">Confirm Booking</button>
+                </div>
+                <p id="reservationStatus" style="margin-top: 15px;"></p>
+            </div>
+
+            <div class="glass-card">
+                <h2>Active Reservations</h2>
+                <div id="reservationList">
+                    <p style="color: #888;">Fetching latest bookings...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- UI NAVIGATION ---
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- CHARTS ---
+        var historyCtx = document.getElementById('historyChart').getContext('2d');
+        var historyChart = new Chart(historyCtx, {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Occupied Slots', data: [], borderColor: '#4a90e2', backgroundColor: 'rgba(74,144,226,0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        var ctx = document.getElementById('parkingChart').getContext('2d');
+        var parkingChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: ['Free', 'Occupied'], datasets: [{ data: [0, 0], backgroundColor: ['#27ae60', '#e74c3c'], borderWeight: 0 }] },
+            options: { cutout: '70%' }
+        });
+
+        // --- API LOGIC (RETAINED) ---
+        const API_BASE = "https://parking-backend-ec5m.onrender.com";
+
+        function updateData() {
+            fetch(`${API_BASE}/data`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("distance1").innerText = data.distance1 + " cm";
+                    document.getElementById("distance2").innerText = data.distance2 + " cm";
+                    
+                    const s1 = document.getElementById("status1");
+                    const s2 = document.getElementById("status2");
+                    
+                    s1.innerText = data.status1;
+                    s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
+                    
+                    s2.innerText = data.status2;
+                    s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
+
+                    let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
+                    let occ = 2 - free;
+
+                    document.getElementById("freeCount").innerText = free;
+                    document.getElementById("occCount").innerText = occ;
+
+                    parkingChart.data.datasets[0].data = [free, occ];
+                    parkingChart.update();
+
+                    // Update History
+                    let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    historyChart.data.labels.push(now);
+                    historyChart.data.datasets[0].data.push(occ);
+                    if(historyChart.data.labels.length > 12) {
+                        historyChart.data.labels.shift();
+                        historyChart.data.datasets[0].data.shift();
+                    }
+                    historyChart.update();
+                });
+        }
+
+        function reserveSlot() {
+            let slot = document.getElementById("slot").value;
+            let start = document.getElementById("start").value;
+            let end = document.getElementById("end").value;
+            
+            fetch(`${API_BASE}/reserve`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ slot, start, end, price: 20 })
+            }).then(() => {
+                document.getElementById("reservationStatus").innerText = "Success! Slot " + slot + " reserved.";
+                loadReservations();
+            });
+        }
+
+        function loadReservations() {
+            fetch(`${API_BASE}/reservations`)
+                .then(res => res.json())
+                .then(data => {
+                    let html = data.map(r => `
+                        <div style="padding:10px; border-bottom:1px solid #eee; font-size:14px;">
+                            <b>Slot ${r.slot}</b>: ${r.start} - ${r.end}
+                        </div>
+                    `).join('');
+                    document.getElementById("reservationList").innerHTML = html || "No active reservations.";
+                });
+        }
+
+        function updatePrediction() {
+            fetch(`${API_BASE}/prediction`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("prediction").innerText = "Expected Free Spaces: " + data.predicted_free_spaces;
+                });
+        }
+
+        function logout() { window.location.href = "/"; }
+
+        // Intervals
+        setInterval(updateData, 2000);
+        setInterval(loadReservations, 5000);
+        setInterval(updatePrediction, 10000);
+
+        // Init
+        updateData();
+        loadReservations();
+        updatePrediction();
+    </script>
 </body>
 </html>
-
-
-
-
-
