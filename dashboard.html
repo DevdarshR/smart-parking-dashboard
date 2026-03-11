@@ -115,6 +115,10 @@ Occupied: <span id="occCount">0</span>
 <button onclick="reserveSlot()">Reserve</button>
 
 <p id="reservationStatus"></p>
+  
+<h2>Current Reservations</h2>
+
+<div id="reservationList"></div>
 <h2>Parking Lot</h2>
 
 <div class="parkingLot">
@@ -235,6 +239,28 @@ document.getElementById("reservationStatus").innerHTML="Reservation Successful"
 })
 
 }
+function loadReservations(){
+
+fetch("https://parking-backend-ec5m.onrender.com/reservations")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let html=""
+
+data.forEach(r=>{
+html += "Slot "+r.slot+" reserved from "+r.start+" to "+r.end+"<br>"
+})
+
+document.getElementById("reservationList").innerHTML=html
+
+})
+
+}
+
+setInterval(loadReservations,3000)
+loadReservations()  
 function updateData(){
 
 fetch("https://parking-backend-ec5m.onrender.com/data")
@@ -324,5 +350,6 @@ updateData();
 
 </body>
 </html>
+
 
 
