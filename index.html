@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Smart Parking Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+margin:0;
+text-align:center;
+}
+
+.header{
+background:#2c3e50;
+color:white;
+padding:20px;
+font-size:24px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logoutBtn{
+background:red;
+border:none;
+color:white;
+padding:8px 15px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.counter{
+margin:20px;
+font-size:20px;
+font-weight:bold;
+}
+
+.parkingLot{
+display:flex;
+justify-content:center;
+gap:40px;
+margin-top:40px;
+}
+
+.slotBox{
+
+width:140px;
+height:140px;
+
+background:white;
+border-radius:10px;
+
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+
+font-size:18px;
+
+}
+
+.slotStatus{
+font-size:28px;
+font-weight:bold;
+}
+
+.analytics{
+margin-top:40px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+<span>Smart Parking System</span>
+
+<button onclick="logout()" class="logoutBtn">
+Logout
+</button>
+
+</div>
+
+<div class="counter">
+
+Total Slots: 2 |
+Free Slots: <span id="freeCount">0</span> |
+Occupied: <span id="occCount">0</span>
+
+</div>
+
+<h2>Parking Lot</h2>
+
+<div class="parkingLot">
+
+<div class="slotBox">
+
+<div>Slot 1</div>
+
+<div id="status1" class="slotStatus">Loading...</div>
+
+<div id="distance1"></div>
+
+</div>
+
+<div class="slotBox">
+
+<div>Slot 2</div>
+
+<div id="status2" class="slotStatus">Loading...</div>
+
+<div id="distance2"></div>
+
+</div>
+
+</div>
+
+<div class="analytics">
+
+<h2>Parking Analytics</h2>
+
+<div style="width:300px;margin:auto;">
+<canvas id="parkingChart"></canvas>
+</div>
+
+</div>
+
+<h2>Parking Usage History</h2>
+
+<div style="width:400px;margin:auto;">
+<canvas id="historyChart"></canvas>
+</div>
+
+<h2>Parking Prediction</h2>
+
+<div id="prediction" style="font-size:20px;font-weight:bold;">
+Loading prediction...
+</div>
+
+<script>
+
+var historyCtx = document.getElementById('historyChart').getContext('2d');
+
+var historyChart = new Chart(historyCtx,{
+type:'line',
+data:{
+labels:[],
+datasets:[{
+label:'Occupied Slots',
+data:[],
+borderColor:'blue',
+fill:false,
+tension:0.3
+}]
+},
+options:{
+responsive:true,
+scales:{
+y:{
+beginAtZero:true,
+ticks:{
+stepSize:1
+}
+}
+}
+}
+});
+
+var ctx = document.getElementById('parkingChart').getContext('2d');
+
+var parkingChart = new Chart(ctx,{
+type:'pie',
+data:{
+labels:['Free','Occupied'],
+datasets:[{
+data:[0,0],
+backgroundColor:['green','red']
+}]
+}
+});
+
+function updateData(){
+
+fetch("https://parking-backend-ec5m.onrender.com/data")
+.then(response => response.json())
+.then(data => {
+
+document.getElementById("distance1").innerHTML =
+data.distance1 + " cm";
+
+document.getElementById("distance2").innerHTML =
+data.distance2 + " cm";
+
+document.getElementById("status1").innerHTML =
+data.status1;
+
+document.getElementById("status2").innerHTML =
+data.status2;
+
+if(data.status1 == "FREE"){
+document.getElementById("status1").style.color="green";
+}else{
+document.getElementById("status1").style.color="red";
+}
+
+if(data.status2 == "FREE"){
+document.getElementById("status2").style.color="green";
+}else{
+document.getElementById("status2").style.color="red";
+}
+
+let free = 0;
+let occ = 0;
+
+if(data.status1 == "FREE") free++; else occ++;
+if(data.status2 == "FREE") free++; else occ++;
+
+document.getElementById("freeCount").innerHTML = free;
+document.getElementById("occCount").innerHTML = occ;
+
+parkingChart.data.datasets[0].data = [free, occ];
+parkingChart.update();
+
+let occupiedSlots = occ;
+
+let now = new Date().toLocaleTimeString();
+
+historyChart.data.labels.push(now);
+historyChart.data.datasets[0].data.push(occupiedSlots);
+
+if(historyChart.data.labels.length > 10){
+historyChart.data.labels.shift();
+historyChart.data.datasets[0].data.shift();
+}
+
+historyChart.update();
+});
+
+}
+
+function updatePrediction(){
+
+fetch("https://parking-backend-ec5m.onrender.com/prediction")
+.then(response => response.json())
+.then(data => {
+
+document.getElementById("prediction").innerHTML =
+"Predicted Free Spaces: " + data.predicted_free_spaces;
+
+});
+
+}
+
+setInterval(updatePrediction,5000);
+updatePrediction();
+
+function logout(){
+window.location.href="/";
+}
+
+setInterval(updateData,1000);
+
+updateData();
+
+</script>
+
+</body>
+</html>
