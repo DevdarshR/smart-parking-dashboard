@@ -20,11 +20,22 @@
 
         body {
             margin: 0;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e1f5fe, #f3e5f5);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
+            overflow: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1920') center/cover no-repeat;
+            opacity: 0.1;
+            z-index: -1;
         }
 
         @keyframes gradientBG {
@@ -44,7 +55,6 @@
             padding: 30px 20px;
             box-shadow: 4px 0 15px rgba(0,0,0,0.05);
             z-index: 10;
-            flex-shrink: 0;
         }
 
         .sidebar h1 {
@@ -95,85 +105,125 @@
         }
 
         /* Parking Grid */
-        .parking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
-        .slot-card { text-align: center; padding: 25px; transition: transform 0.3s ease; }
-        .slot-status { font-size: 28px; font-weight: 600; margin: 10px 0; }
+        .parking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .slot-card { text-align: center; padding: 30px; transition: transform 0.3s ease; }
+        .slot-card:hover { transform: translateY(-5px); }
+        .slot-status { font-size: 32px; font-weight: 600; margin: 10px 0; }
         
-        .stats-banner { display: flex; justify-content: space-around; margin-bottom: 30px; text-align: center; }
-        .stat-item span { display: block; font-size: 24px; font-weight: 600; color: var(--primary); }
-
-        /* Mobile Responsive Magic */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-                padding: 15px;
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                border-right: none;
-                border-bottom: 1px solid rgba(255,255,255,0.2);
-            }
-
-            .sidebar h1 { width: 100%; margin-bottom: 10px; font-size: 18px; }
-            
-            .nav-item {
-                padding: 8px 12px;
-                margin: 4px;
-                font-size: 12px;
-            }
-
-            .main-content { padding: 20px; }
-
-            .stats-banner {
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .stat-item { flex: 1; min-width: 80px; font-size: 12px; }
-            .stat-item span { font-size: 18px; }
-
-            .logout-btn { display: none; } /* Hidden on mobile to save space */
-        }
-
         /* Inputs & Buttons */
         input, select, button { padding: 12px; margin: 10px 5px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
         button { background: var(--primary); color: white; border: none; cursor: pointer; transition: 0.3s; }
-        .logout-btn { margin-top: auto; background: #fdf2f2; color: var(--danger); border: 1px solid #fee2e2; }
-
-        .res-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px; background: rgba(255,255,255,0.6);
-            border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee;
-        }
+        button:hover { opacity: 0.9; }
         
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: var(--accent); color: white; padding: 12px 20px; border-radius: 10px; animation: slideIn 0.3s ease forwards; font-size: 14px; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .logout-btn { margin-top: auto; background: #fdf2f2; color: var(--danger); border: 1px solid #fee2e2; }
+        
+        .stats-banner { display: flex; justify-content: space-around; margin-bottom: 30px; }
+        .stat-item span { display: block; font-size: 24px; font-weight: 600; color: var(--primary); }
+
+        /* Reservation List Styles */
+        .res-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+        .del-btn {
+            background: var(--danger);
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+            border-radius: 6px;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--accent);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    /* Responsive Mobile Adjustments */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column; /* Stack sidebar above content */
+        overflow-y: auto;       /* Allow scrolling the whole page */
+    }
+
+    .sidebar {
+        width: 100%;            /* Sidebar takes full width */
+        height: auto;           /* Sidebar adjusts to content height */
+        padding: 15px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.3);
+        flex-direction: row;    /* Layout nav items horizontally */
+        flex-wrap: wrap;        /* Wrap them if they don't fit */
+        justify-content: center;
+    }
+
+    .sidebar h1 {
+        width: 100%;            /* Title stays on its own line */
+        margin-bottom: 15px;
+    }
+
+    .nav-item {
+        padding: 8px 15px;
+        margin: 5px;
+        font-size: 14px;
+    }
+
+    .main-content {
+        padding: 15px;          /* Give content more room */
+    }
+
+    .stats-banner {
+        flex-direction: column; /* Stack stats vertically */
+        gap: 15px;
+    }
+
+    .logout-btn {
+        display: none;          /* Optional: hide logout on mobile to save space */
+    }
+}
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
         <h1>LuxePark</h1>
-        <div class="nav-item active" onclick="showSection('live')">Live</div>
-        <div class="nav-item" onclick="showSection('analytics')">Analytics</div>
-        <div class="nav-item" onclick="showSection('reserve')">Reserve</div>
+        <div class="nav-item active" onclick="showSection('live')">Live Monitoring</div>
+        <div class="nav-item" onclick="showSection('analytics')">Usage Analytics</div>
+        <div class="nav-item" onclick="showSection('reserve')">Reservations</div>
         <button class="logout-btn" onclick="logout()">Sign Out</button>
     </nav>
 
     <main class="main-content">
         <section id="live" class="section active">
             <div class="glass-card stats-banner">
-                <div class="stat-item">Total <span>02</span></div>
-                <div class="stat-item">Free <span id="freeCount" style="color: var(--success)">0</span></div>
-                <div class="stat-item">Busy <span id="occCount" style="color: var(--danger)">0</span></div>
+                <div class="stat-item">Total Slots <span>02</span></div>
+                <div class="stat-item">Available <span id="freeCount" style="color: var(--success)">0</span></div>
+                <div class="stat-item">Occupied <span id="occCount" style="color: var(--danger)">0</span></div>
             </div>
             <div class="glass-card">
-                <h2>Live Slots</h2>
+                <h2>Real-Time Availability</h2>
                 <div class="parking-grid">
                     <div class="glass-card slot-card">
                         <h3>Slot 01</h3>
@@ -188,35 +238,39 @@
                 </div>
             </div>
             <div class="glass-card">
-                <h3>Prediction</h3>
-                <p id="prediction" style="font-size: 1rem; color: var(--primary)">Calculating trend...</p>
+                <h3>Smart AI Prediction</h3>
+                <p id="prediction" style="font-size: 1.2rem; color: var(--primary)">Calculating trend...</p>
             </div>
         </section>
 
         <section id="analytics" class="section">
             <div class="glass-card">
-                <h2>Occupancy</h2>
-                <div style="max-width: 300px; margin: auto;"><canvas id="parkingChart"></canvas></div>
+                <h2>Occupancy Overview</h2>
+                <div style="max-width: 400px; margin: auto;"><canvas id="parkingChart"></canvas></div>
             </div>
             <div class="glass-card">
-                <h2>24h History</h2>
-                <canvas id="historyChart" height="150"></canvas>
+                <h2>24-Hour History</h2>
+                <canvas id="historyChart" height="100"></canvas>
             </div>
         </section>
 
         <section id="reserve" class="section">
             <div class="glass-card">
-                <h2>Book Space</h2>
-                <div style="display: flex; flex-direction: column;">
+                <h2>Book a Space</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                     <select id="slot"><option value="1">Slot 1</option><option value="2">Slot 2</option></select>
                     <input type="time" id="start">
                     <input type="time" id="end">
                     <button onclick="reserveSlot()">Confirm Booking</button>
                 </div>
+                <p id="reservationStatus" style="margin-top: 15px;"></p>
             </div>
+
             <div class="glass-card">
-                <h2>Active</h2>
-                <div id="reservationList"></div>
+                <h2>Active Reservations</h2>
+                <div id="reservationList">
+                    <p style="color: #888;">Fetching latest bookings...</p>
+                </div>
             </div>
         </section>
     </main>
@@ -225,8 +279,9 @@
 
     <script>
         const API_BASE = "https://parking-backend-ec5m.onrender.com";
-        let currentReservations = [];
+        let currentReservations = []; // Stores our active reservations in memory
 
+        // --- UI NAVIGATION ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -234,80 +289,183 @@
             event.currentTarget.classList.add('active');
         }
 
+        // --- TOAST NOTIFICATIONS ---
         function showToast(message) {
             const container = document.getElementById("toast-container");
             const toast = document.createElement("div");
             toast.className = "toast";
             toast.innerText = message;
             container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
+            
+            // Remove toast after 4 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
         }
 
+        // --- CHARTS ---
         var historyCtx = document.getElementById('historyChart').getContext('2d');
         var historyChart = new Chart(historyCtx, {
             type: 'line',
-            data: { labels: [], datasets: [{ label: 'Occupied', data: [], borderColor: '#4a90e2', fill: true, tension: 0.4 }] },
-            options: { responsive: true }
+            data: { labels: [], datasets: [{ label: 'Occupied Slots', data: [], borderColor: '#4a90e2', backgroundColor: 'rgba(74,144,226,0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, plugins: { legend: { display: false } } }
         });
 
         var ctx = document.getElementById('parkingChart').getContext('2d');
         var parkingChart = new Chart(ctx, {
             type: 'doughnut',
-            data: { labels: ['Free', 'Occupied'], datasets: [{ data: [0, 0], backgroundColor: ['#27ae60', '#e74c3c'] }] },
+            data: { labels: ['Free', 'Occupied'], datasets: [{ data: [0, 0], backgroundColor: ['#27ae60', '#e74c3c'], borderWeight: 0 }] },
             options: { cutout: '70%' }
         });
 
+        // --- API & DATA LOGIC ---
         function updateData() {
-            fetch(`${API_BASE}/data`).then(res => res.json()).then(data => {
-                document.getElementById("distance1").innerText = data.distance1 + " cm";
-                document.getElementById("distance2").innerText = data.distance2 + " cm";
-                const s1 = document.getElementById("status1");
-                const s2 = document.getElementById("status2");
-                s1.innerText = data.status1; s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
-                s2.innerText = data.status2; s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
-                let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
-                let occ = 2 - free;
-                document.getElementById("freeCount").innerText = free;
-                document.getElementById("occCount").innerText = occ;
-                parkingChart.data.datasets[0].data = [free, occ];
-                parkingChart.update();
-                let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                historyChart.data.labels.push(now);
-                historyChart.data.datasets[0].data.push(occ);
-                if(historyChart.data.labels.length > 10) { historyChart.data.labels.shift(); historyChart.data.datasets[0].data.shift(); }
-                historyChart.update();
-            }).catch(e => console.log("Fetch error"));
+            fetch(`${API_BASE}/data`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("distance1").innerText = data.distance1 + " cm";
+                    document.getElementById("distance2").innerText = data.distance2 + " cm";
+                    
+                    const s1 = document.getElementById("status1");
+                    const s2 = document.getElementById("status2");
+                    
+                    s1.innerText = data.status1;
+                    s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
+                    
+                    s2.innerText = data.status2;
+                    s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
+
+                    let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
+                    let occ = 2 - free;
+
+                    document.getElementById("freeCount").innerText = free;
+                    document.getElementById("occCount").innerText = occ;
+
+                    parkingChart.data.datasets[0].data = [free, occ];
+                    parkingChart.update();
+
+                    let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    historyChart.data.labels.push(now);
+                    historyChart.data.datasets[0].data.push(occ);
+                    if(historyChart.data.labels.length > 12) {
+                        historyChart.data.labels.shift();
+                        historyChart.data.datasets[0].data.shift();
+                    }
+                    historyChart.update();
+                }).catch(e => console.log("Data fetch error"));
         }
 
+        // --- RESERVATION LOGIC ---
         function reserveSlot() {
             let slot = document.getElementById("slot").value;
             let start = document.getElementById("start").value;
             let end = document.getElementById("end").value;
+            
             fetch(`${API_BASE}/reserve`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ slot, start, end, price: 20 })
-            }).then(() => { showToast(`Reserved Slot ${slot}`); loadReservations(); });
+            }).then(() => {
+                showToast(`Success! Slot ${slot} reserved from ${start} to ${end}.`);
+                loadReservations();
+            });
         }
 
         function loadReservations() {
-            fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => {
-                currentReservations = data;
-                const list = document.getElementById("reservationList");
-                list.innerHTML = data.length === 0 ? "<p>No bookings</p>" : 
-                    data.map((r, i) => `<div class="res-item">Slot ${r.slot}: ${r.start}-${r.end}</div>`).join('');
-            });
+            fetch(`${API_BASE}/reservations`)
+                .then(res => res.json())
+                .then(data => {
+                    currentReservations = data; // Update our local tracking array
+                    renderReservations();
+                }).catch(e => console.log("Could not load reservations"));
+        }
+
+        function renderReservations() {
+            const list = document.getElementById("reservationList");
+            if (currentReservations.length === 0) {
+                list.innerHTML = "<p style='color: #888;'>No active reservations.</p>";
+                return;
+            }
+
+            let html = currentReservations.map((r, index) => `
+                <div class="res-item">
+                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end}</div>
+                    <button class="del-btn" onclick="manualDelete(${index})">Delete</button>
+                </div>
+            `).join('');
+            list.innerHTML = html;
+        }
+
+        function manualDelete(index) {
+            const res = currentReservations[index];
+            
+            // 1. Remove from local array instantly for responsive UI
+            currentReservations.splice(index, 1);
+            renderReservations();
+            showToast(`Reservation for Slot ${res.slot} cancelled manually.`);
+
+            // 2. Tell the backend to delete it (Update the endpoint to match your actual backend delete route!)
+            fetch(`${API_BASE}/delete_reservation`, { // <--- Change this to your actual backend delete endpoint
+                method: "POST", // Or DELETE
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(res)
+            }).catch(e => console.log("Note: Backend deletion endpoint may need to be configured."));
+        }
+
+        // --- REAL-TIME EXPIRATION CHECKER ---
+        function checkExpirationsRealTime() {
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+
+            // Loop backwards so removing items doesn't mess up index tracking
+            for (let i = currentReservations.length - 1; i >= 0; i--) {
+                const res = currentReservations[i];
+                
+                // Parse the "end" time (Assuming format is "HH:MM")
+                const [endHours, endMinutes] = res.end.split(':').map(Number);
+                
+                // Check if current real-world time is past the reservation end time
+                if (currentHours > endHours || (currentHours === endHours && currentMinutes >= endMinutes)) {
+                    
+                    // Show notification
+                    showToast(`Time's up! Reservation for Slot ${res.slot} has expired.`);
+                    
+                    // Remove from array and UI
+                    currentReservations.splice(i, 1);
+                    renderReservations();
+
+                    // Optional: tell backend to delete if it doesn't do it automatically
+                    fetch(`${API_BASE}/delete_reservation`, { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(res)
+                    }).catch(e => {}); 
+                }
+            }
         }
 
         function updatePrediction() {
-            fetch(`${API_BASE}/prediction`).then(res => res.json()).then(data => {
-                document.getElementById("prediction").innerText = "Expected Free: " + data.predicted_free_spaces;
-            });
+            fetch(`${API_BASE}/prediction`)
+                .then(res => res.json())
+                .then(data => { document.getElementById("prediction").innerText = "Expected Free Spaces: " + data.predicted_free_spaces; })
+                .catch(e => console.log("Prediction fetch error"));
         }
 
-        setInterval(updateData, 3000);
-        setInterval(loadReservations, 10000);
-        setInterval(updatePrediction, 15000);
-        updateData(); loadReservations(); updatePrediction();
+        function logout() { window.location.href = "/"; }
+
+        // --- INTERVALS ---
+        setInterval(updateData, 2000);
+        setInterval(loadReservations, 10000); // Only fetch from backend every 10s so we don't overwrite local deletes instantly
+        setInterval(checkExpirationsRealTime, 10000); // Check for expired times locally every 10 seconds
+        setInterval(updatePrediction, 10000);
+
+        // --- INIT ---
+        updateData();
+        loadReservations();
+        updatePrediction();
     </script>
 </body>
 </html>
+
