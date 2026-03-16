@@ -302,9 +302,18 @@
         }
 
         function logout() {
+            // 1. Clear any saved session data
             localStorage.clear();
-            showToast("Signed out.");
-            setTimeout(() => window.location.reload(), 1000);
+            sessionStorage.clear();
+            
+            // 2. Show a quick goodbye message
+            showToast("Signed out successfully.");
+
+            // 3. Redirect to your login page after a short delay
+            setTimeout(() => {
+                // Make sure this matches the exact name of your login file!
+                window.location.href = "index.html"; 
+            }, 1000);
         }
 
         // --- Initialization ---
