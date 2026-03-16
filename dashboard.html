@@ -304,16 +304,20 @@
         // --- Manual Delete Logic ---
         function manualDelete(index) {
             const res = currentReservations[index];
+            
+            // 1. Remove from local array instantly for responsive UI
             currentReservations.splice(index, 1);
-            renderReservationList(); // Update UI instantly
-            showToast(`Cancelled reservation for Slot ${res.slot}`);
+            renderReservations();
+            showToast(`Reservation for Slot ${res.slot} cancelled manually.`);
 
-            fetch(`${API_BASE}/delete_reservation`, { 
-                method: "POST", 
+            // 2. Tell the backend to delete it (Update the endpoint to match your actual backend delete route!)
+            fetch(`${API_BASE}/delete_reservation`, { // <--- Change this to your actual backend delete endpoint
+                method: "POST", // Or DELETE
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(res)
-            });
+            }).catch(e => console.log("Note: Backend deletion endpoint may need to be configured."));
         }
+
 
         // --- Local Time Auto-Expiration (Fixed Timezone issue) ---
         function checkExpirationsRealTime() {
