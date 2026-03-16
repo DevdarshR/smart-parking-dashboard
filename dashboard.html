@@ -64,8 +64,32 @@
         .btn-cancel { background: var(--danger); }
         .logout-btn { background: #fdf2f2; color: var(--danger); border: 1px solid #fee2e2; }
 
-        .res-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; }
+        .res-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; }
         
+        /* Sleek Delete Button Styling */
+        .del-btn { 
+            background: transparent; 
+            border: none; 
+            width: auto;
+            margin: 0;
+            padding: 10px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transition: transform 0.2s ease; 
+        }
+        .del-btn:hover { 
+            transform: scale(1.15); 
+            opacity: 1;
+            background: transparent;
+        }
+        .del-btn svg { 
+            width: 22px; 
+            height: 22px; 
+            fill: var(--danger); 
+        }
+
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: var(--accent); color: white; padding: 12px 20px; border-radius: 10px; animation: slideIn 0.3s ease forwards; font-size: 14px; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -277,7 +301,7 @@
             }, 1500); 
         }
 
-        // --- Reservation Management (Fixed UI) ---
+        // --- Reservation Management ---
         function loadReservations() {
             fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => {
                 currentReservations = data;
@@ -292,11 +316,13 @@
                 return;
             }
             
-            // Re-added the Delete button here!
+            // Replaced the word 'Delete' with a sleek trash can SVG
              let html = currentReservations.map((r, index) => `
                 <div class="res-item">
-                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end}</div>
-                    <button class="del-btn" onclick="manualDelete(${index})">Delete</button>
+                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end} <br><small>Paid: ₹${r.price || 'N/A'}</small></div>
+                    <button class="del-btn" onclick="manualDelete(${index})" aria-label="Delete">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>
+                    </button>
                 </div>
             `).join('');
             list.innerHTML = html;
@@ -306,23 +332,21 @@
         function manualDelete(index) {
             const res = currentReservations[index];
             
-            // 1. Remove from local array instantly for responsive UI
+            // Fixed typo: Now correctly calls renderReservationList()
             currentReservations.splice(index, 1);
-            renderReservations();
+            renderReservationList(); 
             showToast(`Reservation for Slot ${res.slot} cancelled manually.`);
 
-            // 2. Tell the backend to delete it (Update the endpoint to match your actual backend delete route!)
-            fetch(`${API_BASE}/delete_reservation`, { // <--- Change this to your actual backend delete endpoint
-                method: "POST", // Or DELETE
+            fetch(`${API_BASE}/delete_reservation`, { 
+                method: "POST", 
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(res)
-            }).catch(e => console.log("Note: Backend deletion endpoint may need to be configured."));
+            }).catch(e => console.log("Backend deletion error."));
         }
 
-
-        // --- Local Time Auto-Expiration (Fixed Timezone issue) ---
+        // --- Local Time Auto-Expiration ---
         function checkExpirationsRealTime() {
-            const now = new Date(); // Gets the local time on your phone/PC
+            const now = new Date(); 
             const currentHours = now.getHours();
             const currentMinutes = now.getMinutes();
 
@@ -333,9 +357,8 @@
                 if (currentHours > endHours || (currentHours === endHours && currentMinutes >= endMinutes)) {
                     showToast(`Time's up! Slot ${res.slot} reservation expired.`);
                     currentReservations.splice(i, 1);
-                    renderReservationList(); // Remove from screen
+                    renderReservationList(); 
 
-                    // Tell backend to delete it
                     fetch(`${API_BASE}/delete_reservation`, { 
                         method: "POST", 
                         headers: { "Content-Type": "application/json" },
@@ -353,8 +376,8 @@
 
         // --- Initialization & Timers ---
         setInterval(updateData, 3000);
-        setInterval(loadReservations, 15000); // Fetch from backend every 15s
-        setInterval(checkExpirationsRealTime, 5000); // Check for expiration every 5s locally
+        setInterval(loadReservations, 15000); 
+        setInterval(checkExpirationsRealTime, 5000); 
         updateData(); 
         loadReservations();
     </script>
