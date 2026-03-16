@@ -373,19 +373,25 @@
                 }
                 
                 // Scenario 2: 5-Minute Warning Trigger
+                // Scenario 2: 5-Minute Warning Trigger
                 else if (timeRemaining <= 5 && timeRemaining > 0) {
-                    // Check if we haven't warned them about this specific slot yet
                     if (!warnedSlots.has(res.slot)) {
                         
-                        // 1. Show the visual alert on the screen
-                        showToast(`⚠️ Warning: Slot ${res.slot} expires in ${timeRemaining} minutes!`);
-                        
-                        // 2. Vibrate the Android phone (Buzz, pause, Buzz)
-                        if ("vibrate" in navigator) {
-                            navigator.vibrate([500, 200, 500]); 
+                        // Check if the app bridge exists (meaning they are using the Android App)
+                        if (window.AndroidBridge) {
+                            // Tell Kotlin to show a system notification
+                            window.AndroidBridge.showSystemNotification(
+                                "Parking Expiring Soon", 
+                                `Slot ${res.slot} expires in ${timeRemaining} minutes!`
+                            );
+                        } else {
+                            // Fallback for computer browsers
+                            showToast(`⚠️ Warning: Slot ${res.slot} expires in ${timeRemaining} minutes!`);
                         }
                         
-                        // 3. Mark this slot as warned
+                        // Keep the vibration for extra effect
+                        if ("vibrate" in navigator) navigator.vibrate([500, 200, 500]); 
+                        
                         warnedSlots.add(res.slot);
                     }
                 }
