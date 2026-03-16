@@ -293,12 +293,13 @@
             }
             
             // Re-added the Delete button here!
-            list.innerHTML = currentReservations.map((r, index) => `
+             let html = currentReservations.map((r, index) => `
                 <div class="res-item">
-                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end} <br><small>Paid: ₹${r.price || 'N/A'}</small></div>
+                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end}</div>
                     <button class="del-btn" onclick="manualDelete(${index})">Delete</button>
                 </div>
             `).join('');
+            list.innerHTML = html;
         }
 
         // --- Manual Delete Logic ---
