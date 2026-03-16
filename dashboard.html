@@ -279,7 +279,9 @@
 
     <script>
         const API_BASE = "https://parking-backend-ec5m.onrender.com";
-        let currentReservations = []; // Stores our active reservations in memory
+        let currentReservations = [];
+        let slot1Status = "FREE";
+        let slot2Status = "FREE";// Stores our active reservations in memory
 
         // --- UI NAVIGATION ---
         function showSection(id) {
@@ -321,54 +323,58 @@
 
         // --- API & DATA LOGIC ---
         function updateData() {
-            fetch(`${API_BASE}/data`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("distance1").innerText = data.distance1 + " cm";
-                    document.getElementById("distance2").innerText = data.distance2 + " cm";
-                    
-                    const s1 = document.getElementById("status1");
-                    const s2 = document.getElementById("status2");
-                    
-                    s1.innerText = data.status1;
-                    s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
-                    
-                    s2.innerText = data.status2;
-                    s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
+            fetch(`${API_BASE}/data`).then(res => res.json()).then(data => {
+                document.getElementById("distance1").innerText = data.distance1 + " cm";
+                document.getElementById("distance2").innerText = data.distance2 + " cm";
+                
+                const s1 = document.getElementById("status1");
+                const s2 = document.getElementById("status2");
+                
+                s1.innerText = data.status1; s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
+                s2.innerText = data.status2; s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
+                
+                // 2. Save the live status to our variables
+                slot1Status = data.status1;
+                slot2Status = data.status2;
 
-                    let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
-                    let occ = 2 - free;
-
-                    document.getElementById("freeCount").innerText = free;
-                    document.getElementById("occCount").innerText = occ;
-
-                    parkingChart.data.datasets[0].data = [free, occ];
-                    parkingChart.update();
-
-                    let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    historyChart.data.labels.push(now);
-                    historyChart.data.datasets[0].data.push(occ);
-                    if(historyChart.data.labels.length > 12) {
-                        historyChart.data.labels.shift();
-                        historyChart.data.datasets[0].data.shift();
-                    }
-                    historyChart.update();
-                }).catch(e => console.log("Data fetch error"));
+                let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
+                let occ = 2 - free;
+                document.getElementById("freeCount").innerText = free;
+                document.getElementById("occCount").innerText = occ;
+                
+                parkingChart.data.datasets[0].data = [free, occ];
+                parkingChart.update();
+                
+                let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                historyChart.data.labels.push(now);
+                historyChart.data.datasets[0].data.push(occ);
+                if(historyChart.data.labels.length > 10) { historyChart.data.labels.shift(); historyChart.data.datasets[0].data.shift(); }
+                historyChart.update();
+            }).catch(e => console.log("Fetch error"));
         }
-
         // --- RESERVATION LOGIC ---
         function reserveSlot() {
             let slot = document.getElementById("slot").value;
             let start = document.getElementById("start").value;
             let end = document.getElementById("end").value;
-            
+
+            // 3. THE MAGIC CHECK: Prevent booking if the hardware says it's occupied
+            if (slot === "1" && slot1Status !== "FREE") {
+                showToast("Cannot book: Slot 1 is currently occupied!");
+                return; // Stops the function from proceeding
+            }
+            if (slot === "2" && slot2Status !== "FREE") {
+                showToast("Cannot book: Slot 2 is currently occupied!");
+                return; // Stops the function from proceeding
+            }
+
+            // If it passes the check, send to the backend
             fetch(`${API_BASE}/reserve`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ slot, start, end, price: 20 })
-            }).then(() => {
-                showToast(`Success! Slot ${slot} reserved from ${start} to ${end}.`);
-                loadReservations();
+            }).then(() => { 
+                showToast(`Reserved Slot ${slot} successfully!`); 
+                loadReservations(); 
             });
         }
 
