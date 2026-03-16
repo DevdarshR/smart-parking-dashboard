@@ -168,9 +168,9 @@
         let currentReservations = [];
         let slot1Status = "FREE";
         let slot2Status = "FREE";
-        let calculatedFinalPrice = 0; // Stores the price globally
+        let calculatedFinalPrice = 0; 
 
-        // --- UI Navigation ---
+        // --- UI Navigation & Setup ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -187,7 +187,6 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
         }
 
-        // --- Charts Setup ---
         var historyCtx = document.getElementById('historyChart').getContext('2d');
         var historyChart = new Chart(historyCtx, {
             type: 'line', data: { labels: [], datasets: [{ label: 'Occupied', data: [], borderColor: '#4a90e2', fill: true, tension: 0.4 }] }, options: { responsive: true }
@@ -209,7 +208,6 @@
                 s1.innerText = data.status1; s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
                 s2.innerText = data.status2; s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
                 
-                // Track status to block occupied reservations
                 slot1Status = data.status1;
                 slot2Status = data.status2;
 
@@ -227,16 +225,12 @@
         function calculatePrice() {
             let start = document.getElementById("start").value;
             let end = document.getElementById("end").value;
-            
             if (start && end) {
                 let [startHour, startMin] = start.split(':').map(Number);
                 let [endHour, endMin] = end.split(':').map(Number);
-                
-                // Calculate time difference in hours
                 let duration = (endHour + endMin/60) - (startHour + startMin/60);
-                
                 if (duration > 0) {
-                    calculatedFinalPrice = (duration * 50).toFixed(2); // ₹50 per hour
+                    calculatedFinalPrice = (duration * 50).toFixed(2);
                     document.getElementById("priceDisplay").innerText = `Total: ₹${calculatedFinalPrice}`;
                     return;
                 }
@@ -251,25 +245,18 @@
             let start = document.getElementById("start").value;
             let end = document.getElementById("end").value;
 
-            // 1. Validation Checks
             if (!start || !end) { showToast("Please select Start and End times."); return; }
             if (calculatedFinalPrice <= 0) { showToast("End time must be after Start time."); return; }
-            
-            // 2. Hardware Status Check (Your previous fix!)
             if (slot === "1" && slot1Status !== "FREE") { showToast("Cannot book: Slot 1 is currently occupied."); return; }
             if (slot === "2" && slot2Status !== "FREE") { showToast("Cannot book: Slot 2 is currently occupied."); return; }
 
-            // 3. Open Payment Modal
             document.getElementById("modalPrice").innerText = `₹${calculatedFinalPrice}`;
             document.getElementById("paymentModal").classList.add("active");
         }
 
-        function closeModal() {
-            document.getElementById("paymentModal").classList.remove("active");
-        }
+        function closeModal() { document.getElementById("paymentModal").classList.remove("active"); }
 
         function processPayment() {
-            // Simulate Payment Processing Delay
             showToast("Processing Payment...");
             document.querySelector(".payment-box button").innerText = "Processing...";
             
@@ -278,7 +265,6 @@
                 let start = document.getElementById("start").value;
                 let end = document.getElementById("end").value;
 
-                // Send to backend
                 fetch(`${API_BASE}/reserve`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ slot, start, end, price: calculatedFinalPrice })
@@ -287,39 +273,85 @@
                     document.querySelector(".payment-box button").innerText = "Pay & Confirm Booking";
                     showToast(`Payment Successful! Slot ${slot} reserved.`); 
                     loadReservations(); 
-                }).catch(() => showToast("Network Error: Could not reach backend."));
-            }, 1500); // 1.5 second fake loading time
+                }).catch(() => showToast("Network Error."));
+            }, 1500); 
         }
 
-        // --- Load Reservations ---
+        // --- Reservation Management (Fixed UI) ---
         function loadReservations() {
             fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => {
                 currentReservations = data;
-                const list = document.getElementById("reservationList");
-                list.innerHTML = data.length === 0 ? "<p>No active bookings</p>" : 
-                    data.map((r) => `<div class="res-item">Slot ${r.slot}: ${r.start}-${r.end} <br><small>Paid: ₹${r.price || 'N/A'}</small></div>`).join('');
+                renderReservationList();
             });
         }
 
-        function logout() {
-            // 1. Clear any saved session data
-            localStorage.clear();
-            sessionStorage.clear();
+        function renderReservationList() {
+            const list = document.getElementById("reservationList");
+            if (currentReservations.length === 0) {
+                list.innerHTML = "<p style='color: #888;'>No active bookings</p>";
+                return;
+            }
             
-            // 2. Show a quick goodbye message
-            showToast("Signed out successfully.");
-
-            // 3. Redirect to your login page after a short delay
-            setTimeout(() => {
-                // Make sure this matches the exact name of your login file!
-                window.location.href = "index.html"; 
-            }, 1000);
+            // Re-added the Delete button here!
+            list.innerHTML = currentReservations.map((r, index) => `
+                <div class="res-item">
+                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end} <br><small>Paid: ₹${r.price || 'N/A'}</small></div>
+                    <button class="del-btn" onclick="manualDelete(${index})">Delete</button>
+                </div>
+            `).join('');
         }
 
-        // --- Initialization ---
+        // --- Manual Delete Logic ---
+        function manualDelete(index) {
+            const res = currentReservations[index];
+            currentReservations.splice(index, 1);
+            renderReservationList(); // Update UI instantly
+            showToast(`Cancelled reservation for Slot ${res.slot}`);
+
+            fetch(`${API_BASE}/delete_reservation`, { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(res)
+            });
+        }
+
+        // --- Local Time Auto-Expiration (Fixed Timezone issue) ---
+        function checkExpirationsRealTime() {
+            const now = new Date(); // Gets the local time on your phone/PC
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+
+            for (let i = currentReservations.length - 1; i >= 0; i--) {
+                const res = currentReservations[i];
+                const [endHours, endMinutes] = res.end.split(':').map(Number);
+                
+                if (currentHours > endHours || (currentHours === endHours && currentMinutes >= endMinutes)) {
+                    showToast(`Time's up! Slot ${res.slot} reservation expired.`);
+                    currentReservations.splice(i, 1);
+                    renderReservationList(); // Remove from screen
+
+                    // Tell backend to delete it
+                    fetch(`${API_BASE}/delete_reservation`, { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(res)
+                    }); 
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.clear(); sessionStorage.clear();
+            showToast("Signed out successfully.");
+            setTimeout(() => { window.location.href = "index.html"; }, 1000);
+        }
+
+        // --- Initialization & Timers ---
         setInterval(updateData, 3000);
-        setInterval(loadReservations, 10000);
-        updateData(); loadReservations();
+        setInterval(loadReservations, 15000); // Fetch from backend every 15s
+        setInterval(checkExpirationsRealTime, 5000); // Check for expiration every 5s locally
+        updateData(); 
+        loadReservations();
     </script>
 </body>
 </html>
