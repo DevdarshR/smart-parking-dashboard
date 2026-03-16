@@ -193,7 +193,7 @@
         let slot1Status = "FREE";
         let slot2Status = "FREE";
         let calculatedFinalPrice = 0; 
-
+        let warnedSlots = new Set();
         // --- UI Navigation & Setup ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -347,15 +347,21 @@
         // --- Local Time Auto-Expiration ---
         function checkExpirationsRealTime() {
             const now = new Date(); 
-            const currentHours = now.getHours();
-            const currentMinutes = now.getMinutes();
+            // Convert current time to total minutes for easy math (e.g., 2:30 PM = 14*60 + 30 = 870)
+            const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
 
             for (let i = currentReservations.length - 1; i >= 0; i--) {
                 const res = currentReservations[i];
                 const [endHours, endMinutes] = res.end.split(':').map(Number);
+                const endTotalMinutes = endHours * 60 + endMinutes;
                 
-                if (currentHours > endHours || (currentHours === endHours && currentMinutes >= endMinutes)) {
+                // Calculate exactly how many minutes are left
+                const timeRemaining = endTotalMinutes - nowTotalMinutes;
+
+                // Scenario 1: Reservation has expired (0 or fewer minutes left)
+                if (timeRemaining <= 0) {
                     showToast(`Time's up! Slot ${res.slot} reservation expired.`);
+                    warnedSlots.delete(res.slot); // Clean up the tracker
                     currentReservations.splice(i, 1);
                     renderReservationList(); 
 
@@ -364,6 +370,24 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(res)
                     }); 
+                }
+                
+                // Scenario 2: 5-Minute Warning Trigger
+                else if (timeRemaining <= 5 && timeRemaining > 0) {
+                    // Check if we haven't warned them about this specific slot yet
+                    if (!warnedSlots.has(res.slot)) {
+                        
+                        // 1. Show the visual alert on the screen
+                        showToast(`⚠️ Warning: Slot ${res.slot} expires in ${timeRemaining} minutes!`);
+                        
+                        // 2. Vibrate the Android phone (Buzz, pause, Buzz)
+                        if ("vibrate" in navigator) {
+                            navigator.vibrate([500, 200, 500]); 
+                        }
+                        
+                        // 3. Mark this slot as warned
+                        warnedSlots.add(res.slot);
+                    }
                 }
             }
         }
