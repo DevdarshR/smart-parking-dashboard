@@ -30,6 +30,7 @@
         .stats-banner { display: flex; justify-content: space-around; margin-bottom: 30px; text-align: center; }
         .stat-item span { display: block; font-size: 24px; font-weight: 600; color: var(--primary); }
 
+        /* Modals */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 999; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         .modal-overlay.active { display: flex; opacity: 1; }
         .payment-box { width: 100%; max-width: 400px; text-align: center; padding: 30px; }
@@ -195,15 +196,16 @@
     <div id="toast-container"></div>
 
     <script>
+        // 1. SECURITY CHECK: Kick to login page if not signed in!
+        if (!sessionStorage.getItem('active_user')) {
+            window.location.href = "login.html";
+        }
+
         const API_BASE = "https://parking-backend-ec5m.onrender.com";
         let currentReservations = [];
         let slot1Status = "FREE"; let slot2Status = "FREE";
         let calculatedFinalPrice = 0; let warnedSlots = new Set(); 
-        // --- SECURITY CHECK ---
-        // If there is no active user session, kick them back to the login page immediately!
-        if (!sessionStorage.getItem('active_user')) {
-            window.location.href = "login.html";
-        }
+
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -229,15 +231,18 @@
                 s1.innerText = data.status1; s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
                 s2.innerText = data.status2; s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
                 slot1Status = data.status1; slot2Status = data.status2;
-                let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0); let occ = 2 - free;
+                
+                let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0); 
+                let occ = 2 - free;
                 document.getElementById("freeCount").innerText = free; document.getElementById("occCount").innerText = occ;
                 parkingChart.data.datasets[0].data = [free, occ]; parkingChart.update();
                 
+                // History Chart Updates Live
                 let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 historyChart.data.labels.push(now); historyChart.data.datasets[0].data.push(occ);
                 if (historyChart.data.labels.length > 15) { historyChart.data.labels.shift(); historyChart.data.datasets[0].data.shift(); }
                 historyChart.update();
-            }).catch(e => console.log("Fetch error"));
+            }).catch(e => console.error("Fetch Data Error:", e));
         }
 
         function calculatePrice() {
@@ -289,8 +294,6 @@
                 let vehicleNo = document.getElementById("vehicleNo").value.toUpperCase().trim();
                 let start = document.getElementById("start").value;
                 let end = document.getElementById("end").value;
-                
-                // Generate a random Booking ID
                 let bookingId = "LX-" + Math.floor(10000 + Math.random() * 90000);
 
                 fetch(`${API_BASE}/reserve`, {
@@ -303,7 +306,6 @@
                     showToast(`✅ Slot ${slot} reserved. View your pass below.`); 
                     loadReservations(); 
                     
-                    // Clear inputs
                     document.getElementById("vehicleNo").value = "";
                     document.getElementById("start").value = "";
                     document.getElementById("end").value = "";
@@ -314,7 +316,7 @@
         }
 
         function loadReservations() {
-            fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => { currentReservations = data; renderReservationList(); });
+            fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => { currentReservations = data; renderReservationList(); }).catch(e => console.error(e));
         }
 
         function renderReservationList() {
@@ -342,7 +344,6 @@
             list.innerHTML = html;
         }
 
-        // --- View Ticket Function ---
         function showTicket(index) {
             const res = currentReservations[index];
             const bookingId = res.booking_id || "LX-00000";
@@ -350,8 +351,6 @@
             document.getElementById("ticketBookingId").innerText = bookingId;
             document.getElementById("ticketVehicle").innerText = res.vehicle_no || "UNKNOWN";
             document.getElementById("ticketDetails").innerText = `Slot ${res.slot} | ${res.start} - ${res.end}`;
-            
-            // Generate QR Code containing the Booking ID
             document.getElementById("ticketQR").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${bookingId}`;
             
             document.getElementById("ticketModal").classList.add("active");
@@ -360,7 +359,7 @@
         function manualDelete(index) {
             const res = currentReservations[index];
             currentReservations.splice(index, 1); renderReservationList(); 
-            showToast(`Reservation for Slot ${res.slot} cancelled.`);
+            showToast(`Reservation cancelled.`);
             fetch(`${API_BASE}/delete_reservation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(res) });
         }
 
@@ -369,6 +368,7 @@
             for (let i = currentReservations.length - 1; i >= 0; i--) {
                 const res = currentReservations[i]; const [endHours, endMinutes] = res.end.split(':').map(Number);
                 const timeRemaining = (endHours * 60 + endMinutes) - nowTotalMinutes;
+                
                 if (timeRemaining <= 0) {
                     showToast(`Time's up! Slot ${res.slot} reservation expired.`); warnedSlots.delete(res.slot);
                     currentReservations.splice(i, 1); renderReservationList(); 
@@ -385,15 +385,14 @@
             }
         }
 
-        function logout() {
-            // ONLY clear the active session. Do NOT touch localStorage!
-            sessionStorage.clear(); 
-            
-            showToast("Signed out successfully.");
-            
-            // Redirect back to login
-            setTimeout(() => { window.location.href = "index.html"; }, 1000);
+        function logout() { 
+            sessionStorage.clear(); // Only clear session, leave local accounts!
+            showToast("Signed out successfully."); 
+            setTimeout(() => { window.location.href = "index.html"; }, 1000); 
         }
+        
+        setInterval(updateData, 3000); setInterval(loadReservations, 15000); setInterval(checkExpirationsRealTime, 5000); 
+        updateData(); loadReservations();
     </script>
 </body>
 </html>
