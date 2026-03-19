@@ -7,17 +7,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4a90e2;
-            --secondary: #f4f7f6;
-            --accent: #2c3e50;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --glass: rgba(255, 255, 255, 0.85);
-        }
-
+        :root { --primary: #4a90e2; --secondary: #f4f7f6; --accent: #2c3e50; --success: #27ae60; --danger: #e74c3c; --glass: rgba(255, 255, 255, 0.85); }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
         body { margin: 0; min-height: 100vh; display: flex; background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e1f5fe, #f3e5f5); background-size: 400% 400%; animation: gradientBG 15s ease infinite; }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
@@ -33,26 +24,22 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .glass-card { background: var(--glass); backdrop-filter: blur(15px); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1); border: 1px solid rgba(255, 255, 255, 0.4); }
-
         .parking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
         .slot-card { text-align: center; padding: 25px; transition: transform 0.3s ease; }
         .slot-status { font-size: 28px; font-weight: 600; margin: 10px 0; }
         .stats-banner { display: flex; justify-content: space-around; margin-bottom: 30px; text-align: center; }
         .stat-item span { display: block; font-size: 24px; font-weight: 600; color: var(--primary); }
 
-        /* Payment Modal & Advanced Options */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 999; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
         .modal-overlay.active { display: flex; opacity: 1; }
         .payment-box { width: 100%; max-width: 400px; text-align: center; padding: 30px; }
         .price-tag { font-size: 36px; font-weight: bold; color: var(--primary); margin: 10px 0; }
         
-        /* Payment Tabs */
         .payment-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(255,255,255,0.5); padding: 5px; border-radius: 12px; }
         .pay-tab { flex: 1; background: transparent; color: var(--accent); border: none; padding: 10px; border-radius: 8px; margin: 0; }
         .pay-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3); }
         .pay-view { display: none; animation: fadeIn 0.3s ease; }
         .pay-view.active { display: block; }
-        
         .qr-container { background: white; padding: 15px; border-radius: 15px; display: inline-block; margin: 10px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 
         @media (max-width: 768px) {
@@ -72,8 +59,10 @@
         .btn-cancel { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
         .logout-btn { background: #fdf2f2; color: var(--danger); border: 1px solid #fee2e2; }
 
-        .res-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; }
+        .res-item { display: flex; flex-direction: column; padding: 15px; background: rgba(255,255,255,0.6); border-radius: 10px; margin-bottom: 10px; border: 1px solid #eee; }
+        .res-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         
+        .btn-ticket { background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 13px; margin: 10px 0 0 0; width: auto; align-self: flex-start;}
         .del-btn { background: transparent; border: none; width: auto; margin: 0; padding: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.2s ease; }
         .del-btn:hover { transform: scale(1.15); opacity: 1; background: transparent; }
         .del-btn svg { width: 22px; height: 22px; fill: var(--danger); }
@@ -135,6 +124,9 @@
                     <label>Select Slot</label>
                     <select id="slot"><option value="1">Slot 1</option><option value="2">Slot 2</option></select>
                     
+                    <label>Vehicle Number</label>
+                    <input type="text" id="vehicleNo" placeholder="e.g. KL-07-AB-1234" style="text-transform: uppercase;">
+
                     <label>Start Time</label>
                     <input type="time" id="start" onchange="calculatePrice()">
                     
@@ -167,9 +159,7 @@
             </div>
 
             <div id="viewUPI" class="pay-view active">
-                <div class="qr-container">
-                    <img id="qrImage" src="" alt="UPI QR Code" width="160" height="160">
-                </div>
+                <div class="qr-container"><img id="qrImage" src="" alt="UPI QR Code" width="160" height="160"></div>
                 <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Scan with GPay, PhonePe, or Paytm</p>
                 <button onclick="processPayment('UPI')">Verify UPI Payment</button>
             </div>
@@ -177,12 +167,28 @@
             <div id="viewCash" class="pay-view">
                 <div style="padding: 20px; background: rgba(231, 76, 60, 0.1); border-radius: 12px; margin-bottom: 15px;">
                     <strong style="color: var(--danger);">Pay at Exit Gate</strong>
-                    <p style="font-size: 13px; color: #666; margin-top: 5px;">You will need to pay the total amount at the kiosk when leaving the parking lot.</p>
+                    <p style="font-size: 13px; color: #666; margin-top: 5px;">You will need to pay the total amount at the kiosk when leaving.</p>
                 </div>
                 <button onclick="processPayment('Cash')">Confirm Cash Booking</button>
             </div>
             
-            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-cancel" onclick="closeModal('paymentModal')">Cancel</button>
+        </div>
+    </div>
+
+    <div id="ticketModal" class="modal-overlay">
+        <div class="glass-card payment-box" style="background: white;">
+            <h2 style="color: var(--accent); margin-bottom: 5px;">Parking Pass</h2>
+            <p id="ticketBookingId" style="color: #888; margin-top: 0; font-family: monospace; font-size: 18px;">LX-00000</p>
+            
+            <div class="qr-container" style="box-shadow: none; border: 2px dashed #ddd; padding: 10px;">
+                <img id="ticketQR" src="" alt="Ticket QR" width="180" height="180">
+            </div>
+            
+            <h3 id="ticketVehicle" style="margin: 10px 0; color: var(--primary); font-size: 24px;">KL-XX-0000</h3>
+            <p id="ticketDetails" style="font-size: 15px; color: #666; font-weight: 600;">Slot 1 | 14:00 - 15:00</p>
+            
+            <button onclick="closeModal('ticketModal')">Close Pass</button>
         </div>
     </div>
 
@@ -191,24 +197,18 @@
     <script>
         const API_BASE = "https://parking-backend-ec5m.onrender.com";
         let currentReservations = [];
-        let slot1Status = "FREE";
-        let slot2Status = "FREE";
-        let calculatedFinalPrice = 0; 
-        let warnedSlots = new Set(); 
+        let slot1Status = "FREE"; let slot2Status = "FREE";
+        let calculatedFinalPrice = 0; let warnedSlots = new Set(); 
 
-        // --- UI Navigation ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
+            document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active');
         }
 
         function showToast(message) {
             const container = document.getElementById("toast-container");
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.innerText = message;
+            const toast = document.createElement("div"); toast.className = "toast"; toast.innerText = message;
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
         }
@@ -218,58 +218,28 @@
         var ctx = document.getElementById('parkingChart').getContext('2d');
         var parkingChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Free', 'Occupied'], datasets: [{ data: [0, 0], backgroundColor: ['#27ae60', '#e74c3c'] }] }, options: { cutout: '70%' } });
 
-        // --- Fetch Data ---
-        // --- Fetch Hardware Data & Update Charts ---
         function updateData() {
             fetch(`${API_BASE}/data`).then(res => res.json()).then(data => {
-                document.getElementById("distance1").innerText = data.distance1 + " cm";
-                document.getElementById("distance2").innerText = data.distance2 + " cm";
-                
-                const s1 = document.getElementById("status1"); 
-                const s2 = document.getElementById("status2");
-                
+                document.getElementById("distance1").innerText = data.distance1 + " cm"; document.getElementById("distance2").innerText = data.distance2 + " cm";
+                const s1 = document.getElementById("status1"); const s2 = document.getElementById("status2");
                 s1.innerText = data.status1; s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
                 s2.innerText = data.status2; s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
+                slot1Status = data.status1; slot2Status = data.status2;
+                let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0); let occ = 2 - free;
+                document.getElementById("freeCount").innerText = free; document.getElementById("occCount").innerText = occ;
+                parkingChart.data.datasets[0].data = [free, occ]; parkingChart.update();
                 
-                slot1Status = data.status1; 
-                slot2Status = data.status2;
-
-                let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
-                let occ = 2 - free;
-                
-                // Update Top Stats
-                document.getElementById("freeCount").innerText = free; 
-                document.getElementById("occCount").innerText = occ;
-                
-                // Update Circular Doughnut Chart
-                parkingChart.data.datasets[0].data = [free, occ]; 
-                parkingChart.update();
-
-                // --- THE MISSING HISTORY CHART FIX ---
-                // Get current time with seconds for a cooler live-updating look
                 let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                
-                historyChart.data.labels.push(now);
-                historyChart.data.datasets[0].data.push(occ);
-                
-                // Keep only the last 15 data points so the chart doesn't get infinitely squished
-                if (historyChart.data.labels.length > 15) { 
-                    historyChart.data.labels.shift(); 
-                    historyChart.data.datasets[0].data.shift(); 
-                }
+                historyChart.data.labels.push(now); historyChart.data.datasets[0].data.push(occ);
+                if (historyChart.data.labels.length > 15) { historyChart.data.labels.shift(); historyChart.data.datasets[0].data.shift(); }
                 historyChart.update();
-                // -------------------------------------
-
             }).catch(e => console.log("Fetch error"));
         }
 
-        // --- Pricing Calculation ---
         function calculatePrice() {
-            let start = document.getElementById("start").value;
-            let end = document.getElementById("end").value;
+            let start = document.getElementById("start").value; let end = document.getElementById("end").value;
             if (start && end) {
-                let [startHour, startMin] = start.split(':').map(Number);
-                let [endHour, endMin] = end.split(':').map(Number);
+                let [startHour, startMin] = start.split(':').map(Number); let [endHour, endMin] = end.split(':').map(Number);
                 let duration = (endHour + endMin/60) - (startHour + startMin/60);
                 if (duration > 0) {
                     calculatedFinalPrice = (duration * 50).toFixed(2);
@@ -277,83 +247,70 @@
                     return;
                 }
             }
-            calculatedFinalPrice = 0;
-            document.getElementById("priceDisplay").innerText = `Total: ₹0.00`;
+            calculatedFinalPrice = 0; document.getElementById("priceDisplay").innerText = `Total: ₹0.00`;
         }
 
-        // --- Checkout Flow ---
         function initiateBooking() {
             let slot = document.getElementById("slot").value;
+            let vehicleNo = document.getElementById("vehicleNo").value.trim();
             let start = document.getElementById("start").value;
             let end = document.getElementById("end").value;
 
+            if (!vehicleNo) { showToast("Please enter your Vehicle Number."); return; }
             if (!start || !end) { showToast("Please select Start and End times."); return; }
             if (calculatedFinalPrice <= 0) { showToast("End time must be after Start time."); return; }
             if (slot === "1" && slot1Status !== "FREE") { showToast("Cannot book: Slot 1 is currently occupied."); return; }
             if (slot === "2" && slot2Status !== "FREE") { showToast("Cannot book: Slot 2 is currently occupied."); return; }
 
-            // Set modal price
             document.getElementById("modalPrice").innerText = `₹${calculatedFinalPrice}`;
-            
-            // Generate the dynamic UPI QR Code Image
-            // It creates a real UPI intent link for a dummy merchant "luxepark@upi"
             const upiString = encodeURIComponent(`upi://pay?pa=luxepark@upi&pn=LuxePark&am=${calculatedFinalPrice}&cu=INR`);
             document.getElementById("qrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${upiString}`;
 
-            // Reset to UPI tab and show modal
             switchPaymentView('UPI');
             document.getElementById("paymentModal").classList.add("active");
         }
 
-        // --- Toggle Payment Methods ---
         function switchPaymentView(method) {
-            document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.pay-view').forEach(v => v.classList.remove('active'));
-            
-            document.getElementById(`tab${method}`).classList.add('active');
-            document.getElementById(`view${method}`).classList.add('active');
+            document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.pay-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`tab${method}`).classList.add('active'); document.getElementById(`view${method}`).classList.add('active');
         }
 
-        function closeModal() { document.getElementById("paymentModal").classList.remove("active"); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove("active"); }
 
         function processPayment(method) {
-            let btn = event.target;
-            let originalText = btn.innerText;
-            btn.innerText = "Processing...";
+            let btn = event.target; let originalText = btn.innerText; btn.innerText = "Processing...";
             
-            // Simulate a slight delay to make it feel like it's communicating with a bank
             setTimeout(() => {
                 let slot = document.getElementById("slot").value;
+                let vehicleNo = document.getElementById("vehicleNo").value.toUpperCase().trim();
                 let start = document.getElementById("start").value;
                 let end = document.getElementById("end").value;
+                
+                // Generate a random Booking ID
+                let bookingId = "LX-" + Math.floor(10000 + Math.random() * 90000);
 
                 fetch(`${API_BASE}/reserve`, {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ slot, start, end, price: calculatedFinalPrice, payment_method: method })
+                    body: JSON.stringify({ slot, start, end, price: calculatedFinalPrice, payment_method: method, vehicle_no: vehicleNo, booking_id: bookingId })
                 }).then(() => { 
-                    closeModal();
+                    closeModal('paymentModal');
                     btn.innerText = originalText;
                     
-                    if(method === 'UPI') {
-                        showToast(`✅ UPI Payment Verified! Slot ${slot} reserved.`); 
-                    } else {
-                        showToast(`✅ Slot ${slot} reserved. Please pay cash at exit.`); 
-                    }
-                    
+                    showToast(`✅ Slot ${slot} reserved. View your pass below.`); 
                     loadReservations(); 
-                }).catch(() => {
-                    showToast("Network Error.");
-                    btn.innerText = originalText;
-                });
+                    
+                    // Clear inputs
+                    document.getElementById("vehicleNo").value = "";
+                    document.getElementById("start").value = "";
+                    document.getElementById("end").value = "";
+                    document.getElementById("priceDisplay").innerText = "Total: ₹0.00";
+                    
+                }).catch(() => { showToast("Network Error."); btn.innerText = originalText; });
             }, 1500); 
         }
 
-        // --- Reservation Management ---
         function loadReservations() {
-            fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => {
-                currentReservations = data;
-                renderReservationList();
-            });
+            fetch(`${API_BASE}/reservations`).then(res => res.json()).then(data => { currentReservations = data; renderReservationList(); });
         }
 
         function renderReservationList() {
@@ -361,54 +318,62 @@
             if (currentReservations.length === 0) { list.innerHTML = "<p style='color: #888;'>No active bookings</p>"; return; }
             
              let html = currentReservations.map((r, index) => {
-                 // Determine what to display based on if they paid via UPI or selected Cash
-                 let paymentStatus = r.payment_method === 'Cash' 
-                    ? `<span style="color: var(--danger)">Due at Exit: ₹${r.price} (Cash)</span>` 
-                    : `<span style="color: var(--success)">Paid: ₹${r.price || 'N/A'} (UPI)</span>`;
+                 let paymentStatus = r.payment_method === 'Cash' ? `<span style="color: var(--danger)">Due: ₹${r.price} (Cash)</span>` : `<span style="color: var(--success)">Paid: ₹${r.price || 'N/A'} (UPI)</span>`;
+                 let vNo = r.vehicle_no || "UNKNOWN";
 
                  return `
                 <div class="res-item">
-                    <div><b>Slot ${r.slot}</b>: ${r.start} - ${r.end} <br><small>${paymentStatus}</small></div>
-                    <button class="del-btn" onclick="manualDelete(${index})" aria-label="Delete">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>
-                    </button>
+                    <div class="res-header">
+                        <div>
+                            <b>Slot ${r.slot}</b> <span style="color:#888; font-size: 13px;">| ${vNo}</span><br>
+                            <small>${r.start} - ${r.end} | ${paymentStatus}</small>
+                        </div>
+                        <button class="del-btn" onclick="manualDelete(${index})" aria-label="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>
+                        </button>
+                    </div>
+                    <button class="btn-ticket" onclick="showTicket(${index})">🎟️ View Pass</button>
                 </div>
             `}).join('');
             list.innerHTML = html;
         }
 
+        // --- View Ticket Function ---
+        function showTicket(index) {
+            const res = currentReservations[index];
+            const bookingId = res.booking_id || "LX-00000";
+            
+            document.getElementById("ticketBookingId").innerText = bookingId;
+            document.getElementById("ticketVehicle").innerText = res.vehicle_no || "UNKNOWN";
+            document.getElementById("ticketDetails").innerText = `Slot ${res.slot} | ${res.start} - ${res.end}`;
+            
+            // Generate QR Code containing the Booking ID
+            document.getElementById("ticketQR").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${bookingId}`;
+            
+            document.getElementById("ticketModal").classList.add("active");
+        }
+
         function manualDelete(index) {
             const res = currentReservations[index];
-            currentReservations.splice(index, 1);
-            renderReservationList(); 
-            showToast(`Reservation for Slot ${res.slot} cancelled manually.`);
+            currentReservations.splice(index, 1); renderReservationList(); 
+            showToast(`Reservation for Slot ${res.slot} cancelled.`);
             fetch(`${API_BASE}/delete_reservation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(res) });
         }
 
-        // --- Local Expiration & Android Notifications ---
         function checkExpirationsRealTime() {
-            const now = new Date(); 
-            const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
-
+            const now = new Date(); const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
             for (let i = currentReservations.length - 1; i >= 0; i--) {
-                const res = currentReservations[i];
-                const [endHours, endMinutes] = res.end.split(':').map(Number);
+                const res = currentReservations[i]; const [endHours, endMinutes] = res.end.split(':').map(Number);
                 const timeRemaining = (endHours * 60 + endMinutes) - nowTotalMinutes;
-
                 if (timeRemaining <= 0) {
-                    showToast(`Time's up! Slot ${res.slot} reservation expired.`);
-                    warnedSlots.delete(res.slot);
-                    currentReservations.splice(i, 1);
-                    renderReservationList(); 
+                    showToast(`Time's up! Slot ${res.slot} reservation expired.`); warnedSlots.delete(res.slot);
+                    currentReservations.splice(i, 1); renderReservationList(); 
                     fetch(`${API_BASE}/delete_reservation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(res) }); 
                 }
                 else if (timeRemaining <= 5 && timeRemaining > 0) {
                     if (!warnedSlots.has(res.slot)) {
-                        if (window.AndroidBridge) {
-                            window.AndroidBridge.showSystemNotification("Parking Expiring Soon", `Slot ${res.slot} expires in ${timeRemaining} minutes!`);
-                        } else {
-                            showToast(`⚠️ Warning: Slot ${res.slot} expires in ${timeRemaining} minutes!`);
-                        }
+                        if (window.AndroidBridge) { window.AndroidBridge.showSystemNotification("Parking Expiring Soon", `Slot ${res.slot} expires in ${timeRemaining} minutes!`); } 
+                        else { showToast(`⚠️ Warning: Slot ${res.slot} expires in ${timeRemaining} minutes!`); }
                         if ("vibrate" in navigator) navigator.vibrate([500, 200, 500]); 
                         warnedSlots.add(res.slot);
                     }
@@ -416,12 +381,7 @@
             }
         }
 
-        function logout() {
-            localStorage.clear(); sessionStorage.clear();
-            showToast("Signed out successfully.");
-            setTimeout(() => { window.location.href = "index.html"; }, 1000);
-        }
-
+        function logout() { localStorage.clear(); sessionStorage.clear(); showToast("Signed out successfully."); setTimeout(() => { window.location.href = "index.html"; }, 1000); }
         setInterval(updateData, 3000); setInterval(loadReservations, 15000); setInterval(checkExpirationsRealTime, 5000); 
         updateData(); loadReservations();
     </script>
