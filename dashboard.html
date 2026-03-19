@@ -199,7 +199,11 @@
         let currentReservations = [];
         let slot1Status = "FREE"; let slot2Status = "FREE";
         let calculatedFinalPrice = 0; let warnedSlots = new Set(); 
-
+        // --- SECURITY CHECK ---
+        // If there is no active user session, kick them back to the login page immediately!
+        if (!sessionStorage.getItem('active_user')) {
+            window.location.href = "login.html";
+        }
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
