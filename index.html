@@ -3,207 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxePark | Secure Login</title>
+    <title>LuxePark | Authentication</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4a90e2;
-            --accent: #2c3e50;
-            --glass: rgba(255, 255, 255, 0.85);
-            --danger: #e74c3c;
-        }
-
+        :root { --primary: #4a90e2; --accent: #2c3e50; --glass: rgba(255, 255, 255, 0.85); --danger: #e74c3c; --success: #27ae60; }
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e1f5fe, #f3e5f5); background-size: 400% 400%; animation: gradientBG 15s ease infinite; }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* Same Animated Gradient as Dashboard */
-            background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e1f5fe, #f3e5f5);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            overflow: hidden;
-        }
+        .auth-card { background: var(--glass); backdrop-filter: blur(15px); border-radius: 20px; padding: 40px; width: 90%; max-width: 400px; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1); border: 1px solid rgba(255, 255, 255, 0.4); text-align: center; position: relative; overflow: hidden; }
+        .auth-card h1 { color: var(--accent); margin-top: 0; margin-bottom: 5px; }
+        .auth-card p { color: #666; margin-bottom: 25px; font-size: 14px; }
 
-        /* Same Background Image Overlay as Dashboard */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1920') center/cover no-repeat;
-            opacity: 0.1;
-            z-index: -1;
-        }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; color: var(--accent); margin-bottom: 5px; font-weight: 600; }
+        input { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 14px; transition: border 0.3s; }
+        input:focus { border-color: var(--primary); }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        button.btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button.btn-main:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4); }
 
-        /* Glassmorphic Login Card */
-        .login-card {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border-radius: 24px;
-            padding: 50px 40px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(31, 38, 135, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-        }
+        .toggle-link { margin-top: 20px; font-size: 13px; color: #666; }
+        .toggle-link span { color: var(--primary); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .toggle-link span:hover { text-decoration: underline; }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* Form Toggling */
+        .form-section { display: none; animation: fadeIn 0.4s ease; }
+        .form-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .brand-logo {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 35px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 8px;
-            margin-left: 5px;
-            text-transform: uppercase;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.05);
-            background: rgba(255,255,255,0.9);
-            font-size: 15px;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
-            opacity: 0.95;
-        }
-
-        button:active { transform: translateY(0); }
-
-        #error {
-            color: var(--danger);
-            font-size: 13px;
-            margin-top: 20px;
-            font-weight: 500;
-            min-height: 20px;
-        }
-
-        /* Shake animation for incorrect login */
-        .shake { animation: shake 0.4s ease-in-out; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
+        /* Toast */
+        #toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: 0.3s; pointer-events: none; white-space: nowrap; }
+        #toast.success { background: var(--success); }
     </style>
 </head>
 <body>
 
-    <div class="login-card" id="loginCard">
-        <span class="brand-logo">🚗 LuxePark</span>
-        <div class="subtitle">Smart Parking Prediction System</div>
-
-        <div class="input-group">
-            <label>Username</label>
-            <input id="username" type="text" placeholder="Enter admin username" autocomplete="off">
-        </div>
-
-        <div class="input-group">
-            <label>Password</label>
-            <input id="password" type="password" placeholder="Enter security pin">
-        </div>
-
-        <button onclick="login()">Access Dashboard</button>
+    <div class="auth-card">
+        <div id="toast">Message goes here</div>
         
-        <p id="error"></p>
+        <div id="loginView" class="form-section active">
+            <h1>LuxePark</h1>
+            <p>Welcome back! Please enter your details.</p>
+            
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" placeholder="Enter your username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="••••••••">
+            </div>
+            
+            <button class="btn-main" onclick="handleLogin()">Sign In</button>
+            <div class="toggle-link">Don't have an account? <span onclick="toggleView('registerView')">Sign up</span></div>
+        </div>
+
+        <div id="registerView" class="form-section">
+            <h1>Create Account</h1>
+            <p>Set up a new staff or admin profile.</p>
+            
+            <div class="input-group">
+                <label>New Username</label>
+                <input type="text" id="regUser" placeholder="Choose a username">
+            </div>
+            <div class="input-group">
+                <label>Create Password</label>
+                <input type="password" id="regPass" placeholder="Create a strong password">
+            </div>
+            
+            <button class="btn-main" onclick="handleRegister()">Register Account</button>
+            <div class="toggle-link">Already have an account? <span onclick="toggleView('loginView')">Sign in</span></div>
+        </div>
     </div>
 
     <script>
-        function login() {
-            const user = document.getElementById("username").value;
-            const pass = document.getElementById("password").value;
-            const errorMsg = document.getElementById("error");
-            const card = document.getElementById("loginCard");
-
-            if (user === "admin" && pass === "1234") {
-                errorMsg.style.color = "#27ae60";
-                errorMsg.innerHTML = "Authentication Successful. Redirecting...";
-                
-                // Fancy button transition
-                const btn = document.querySelector('button');
-                btn.innerHTML = "Checking...";
-                btn.style.background = "#27ae60";
-
-                setTimeout(() => {
-                    window.location.href = "dashboard.html"; // Ensure this matches your dashboard file name
-                }, 1200);
-            } else {
-                errorMsg.innerHTML = "Invalid credentials. Please try again.";
-                card.classList.remove("shake");
-                void card.offsetWidth; // Trigger reflow
-                card.classList.add("shake");
-                
-                // Clear password for security
-                document.getElementById("password").value = "";
-            }
+        // Initialize our "Database"
+        // If it's the first time, we create a default admin account
+        if (!localStorage.getItem('luxepark_users')) {
+            const defaultUser = { "admin": "admin123" };
+            localStorage.setItem('luxepark_users', JSON.stringify(defaultUser));
         }
 
-        // Enter key support
-        document.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') { login(); }
-        });
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.className = type === 'success' ? 'success' : '';
+            toast.style.opacity = '1';
+            toast.style.top = '10px';
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.top = '20px'; }, 3000);
+        }
+
+        function toggleView(viewId) {
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            // Clear inputs when switching
+            document.querySelectorAll('input').forEach(input => input.value = '');
+        }
+
+        function handleRegister() {
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+
+            if (!user || !pass) return showToast("Please fill in all fields");
+
+            // Fetch existing users from Local Storage
+            const usersDB = JSON.parse(localStorage.getItem('luxepark_users'));
+
+            if (usersDB[user]) {
+                return showToast("Username already exists!");
+            }
+
+            // Save new user
+            usersDB[user] = pass;
+            localStorage.setItem('luxepark_users', JSON.stringify(usersDB));
+            
+            showToast("Account created! Please Sign In.", "success");
+            setTimeout(() => toggleView('loginView'), 1500);
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            if (!user || !pass) return showToast("Please enter username and password");
+
+            const usersDB = JSON.parse(localStorage.getItem('luxepark_users'));
+
+            // Verify credentials
+            if (usersDB[user] && usersDB[user] === pass) {
+                // Save the active session
+                sessionStorage.setItem('active_user', user);
+                showToast("Login successful! Redirecting...", "success");
+                
+                // Redirect to dashboard (Change 'index.html' if your dashboard is named something else)
+                setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
+            } else {
+                showToast("Invalid username or password");
+            }
+        }
     </script>
 </body>
 </html>
-
