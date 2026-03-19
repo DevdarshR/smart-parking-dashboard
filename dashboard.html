@@ -385,9 +385,15 @@
             }
         }
 
-        function logout() { localStorage.clear(); sessionStorage.clear(); showToast("Signed out successfully."); setTimeout(() => { window.location.href = "index.html"; }, 1000); }
-        setInterval(updateData, 3000); setInterval(loadReservations, 15000); setInterval(checkExpirationsRealTime, 5000); 
-        updateData(); loadReservations();
+        function logout() {
+            // ONLY clear the active session. Do NOT touch localStorage!
+            sessionStorage.clear(); 
+            
+            showToast("Signed out successfully.");
+            
+            // Redirect back to login
+            setTimeout(() => { window.location.href = "index.html"; }, 1000);
+        }
     </script>
 </body>
 </html>
