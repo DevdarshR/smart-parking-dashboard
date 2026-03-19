@@ -219,18 +219,47 @@
         var parkingChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Free', 'Occupied'], datasets: [{ data: [0, 0], backgroundColor: ['#27ae60', '#e74c3c'] }] }, options: { cutout: '70%' } });
 
         // --- Fetch Data ---
+        // --- Fetch Hardware Data & Update Charts ---
         function updateData() {
             fetch(`${API_BASE}/data`).then(res => res.json()).then(data => {
                 document.getElementById("distance1").innerText = data.distance1 + " cm";
                 document.getElementById("distance2").innerText = data.distance2 + " cm";
-                const s1 = document.getElementById("status1"); const s2 = document.getElementById("status2");
+                
+                const s1 = document.getElementById("status1"); 
+                const s2 = document.getElementById("status2");
+                
                 s1.innerText = data.status1; s1.style.color = data.status1 === "FREE" ? "#27ae60" : "#e74c3c";
                 s2.innerText = data.status2; s2.style.color = data.status2 === "FREE" ? "#27ae60" : "#e74c3c";
-                slot1Status = data.status1; slot2Status = data.status2;
+                
+                slot1Status = data.status1; 
+                slot2Status = data.status2;
+
                 let free = (data.status1 === "FREE" ? 1 : 0) + (data.status2 === "FREE" ? 1 : 0);
                 let occ = 2 - free;
-                document.getElementById("freeCount").innerText = free; document.getElementById("occCount").innerText = occ;
-                parkingChart.data.datasets[0].data = [free, occ]; parkingChart.update();
+                
+                // Update Top Stats
+                document.getElementById("freeCount").innerText = free; 
+                document.getElementById("occCount").innerText = occ;
+                
+                // Update Circular Doughnut Chart
+                parkingChart.data.datasets[0].data = [free, occ]; 
+                parkingChart.update();
+
+                // --- THE MISSING HISTORY CHART FIX ---
+                // Get current time with seconds for a cooler live-updating look
+                let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                historyChart.data.labels.push(now);
+                historyChart.data.datasets[0].data.push(occ);
+                
+                // Keep only the last 15 data points so the chart doesn't get infinitely squished
+                if (historyChart.data.labels.length > 15) { 
+                    historyChart.data.labels.shift(); 
+                    historyChart.data.datasets[0].data.shift(); 
+                }
+                historyChart.update();
+                // -------------------------------------
+
             }).catch(e => console.log("Fetch error"));
         }
 
