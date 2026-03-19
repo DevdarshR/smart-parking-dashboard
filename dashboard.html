@@ -419,7 +419,7 @@
         function logout() {
             localStorage.clear(); sessionStorage.clear();
             showToast("Signed out successfully.");
-            setTimeout(() => { window.location.href = "login.html"; }, 1000);
+            setTimeout(() => { window.location.href = "index.html"; }, 1000);
         }
 
         setInterval(updateData, 3000); setInterval(loadReservations, 15000); setInterval(checkExpirationsRealTime, 5000); 
