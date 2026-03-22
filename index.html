@@ -131,14 +131,18 @@
 
             const usersDB = JSON.parse(localStorage.getItem('luxepark_users'));
 
-            // Verify credentials
             if (usersDB[user] && usersDB[user] === pass) {
-                // Save the active session
                 sessionStorage.setItem('active_user', user);
                 showToast("Login successful! Redirecting...", "success");
                 
-                // Redirect to dashboard (Change 'index.html' if your dashboard is named something else)
-                setTimeout(() => { window.location.href = "dashboard.html"; }, 1000);
+                // ROUTING LOGIC: Where should they go?
+                setTimeout(() => { 
+                    if (user.toLowerCase() === "guard") {
+                        window.location.href = "guard.html"; // Send to scanner
+                    } else {
+                        window.location.href = "dashboard.html"; // Send to main dashboard
+                    }
+                }, 1000);
             } else {
                 showToast("Invalid username or password");
             }
